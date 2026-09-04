@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>룰베이스 추천 · 화면기획 9</title>
+<style>
+:root{
+  --primary-1000:#085436; --primary-900:#136D49; --primary-800:#128158;
+  --primary-700:#149867; --primary-600:#1AB277; --primary-500:#46CE97;
+  --primary-400:#87DCB9; --primary-300:#BFF0DB; --primary-200:#E0F7ED; --primary-100:#F2FDF7;
+  --gray-1000:#272833; --gray-900:#2E333A; --gray-800:#393F48; --gray-700:#3E4750;
+  --gray-600:#535D67; --gray-500:#6A7683; --gray-400:#818C98; --gray-300:#9EABBA;
+  --gray-200:#BFCAD6; --gray-100:#D9E0E8; --gray-50:#E6EBF0; --gray-10:#F0F2F5; --gray-5:#F9FAFB;
+  --negative:#EA5656; --gold:#F5A623;
+  font-family:-apple-system,'Spoqa Han Sans Neo','Noto Sans KR',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#E4E7EC;color:var(--gray-1000);-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ===== GNB (상단 네비게이션 바) — 뷰포트 좌우 끝까지 꽉 참 ===== */
+.gnb{position:sticky;top:0;z-index:60;width:100%;display:flex;align-items:center;gap:14px;
+  background:rgba(255,255,255,.94);backdrop-filter:saturate(1.6) blur(8px);border-bottom:1px solid var(--gray-200);
+  padding:11px 20px;box-shadow:0 2px 14px rgba(20,30,40,.05)}
+.gnb-burger{flex-shrink:0;width:34px;height:34px;border-radius:9px;border:1px solid var(--gray-200);background:#fff;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:0}
+.gnb-burger span{display:block;width:15px;height:2px;border-radius:2px;background:var(--gray-700);transition:transform .18s,opacity .18s}
+.gnb-burger.on span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.gnb-burger.on span:nth-child(2){opacity:0}
+.gnb-burger.on span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.gnb-brand{display:flex;align-items:center;gap:10px;min-width:0}
+.gnb-logo{width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--primary-100);border-radius:9px}
+.gnb-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.gnb-title{font-size:15px;font-weight:800;letter-spacing:-.4px;color:var(--gray-1000);white-space:nowrap}
+.gnb-sub{font-size:11px;color:var(--gray-500);letter-spacing:-.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gnb-ver{display:inline-block;vertical-align:1px;margin-left:5px;font-size:11px;font-weight:800;letter-spacing:0;color:var(--primary-600);background:var(--primary-100);border-radius:6px;padding:1px 7px}
+/* 상세기획 상단 — 버전 변경사항 박스 */
+.changelog{border:1px solid var(--gray-200);border-radius:12px;background:var(--gray-50);padding:14px 16px;margin:0 0 20px}
+.changelog summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:800;color:var(--gray-1000)}
+.changelog summary::-webkit-details-marker{display:none}
+.changelog summary .cl-ver{font-size:11.5px;font-weight:800;color:#fff;background:var(--primary-600);border-radius:6px;padding:2px 8px}
+.changelog summary .cl-base{font-size:11.5px;font-weight:600;color:var(--gray-500)}
+.changelog summary .cl-arw{margin-left:auto;color:var(--gray-400);transition:transform .18s}
+.changelog[open] summary .cl-arw{transform:rotate(180deg)}
+.changelog ul{margin:12px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.changelog li{position:relative;padding-left:16px;font-size:12.5px;line-height:1.5;color:var(--gray-800)}
+.changelog li::before{content:'';position:absolute;left:2px;top:7px;width:5px;height:5px;border-radius:50%;background:var(--primary-600)}
+.changelog li b{color:var(--gray-1000)}
+/* 클릭 시 해당 영역으로 이동하는 변경 항목 */
+.changelog li.cl-jump{cursor:pointer;padding:9px 30px 9px 16px;margin:0 -8px;border-radius:9px;transition:background .12s}
+.changelog li.cl-jump::before{top:16px;left:10px}
+.changelog li.cl-jump:hover{background:var(--gray-10)}
+.changelog li .cl-go{position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--gray-300);font-weight:800;font-size:16px}
+.changelog li.cl-jump:hover .cl-go{color:var(--primary-600)}
+#toc-revision .lnb-no{font-size:10px;font-weight:800}
+/* Revision History = version/date/description 표 (spectbl 헤더 재사용) */
+.revtbl th.rv-ver{width:66px}.revtbl th.rv-date{width:118px}
+.revtbl td.rv-ver-c,.revtbl td.rv-date-c{text-align:center;vertical-align:middle}
+.revtbl td.rv-date-c{color:var(--gray-600);font-weight:600;white-space:nowrap}
+.revtbl td.rv-ver-c .cl-ver{display:inline-block;font-size:11.5px;font-weight:800;color:#fff;background:var(--primary-600);border-radius:6px;padding:2px 9px}
+.revtbl td.rv-ver-c .cl-ver.base{background:var(--gray-300)}
+.revtbl .rv-note{color:var(--gray-400);font-size:11px}
+/* 셀 안에서는 변경사항 박스 테두리·배경 제거하고 리스트만 노출 */
+.revtbl .changelog{border:none;background:transparent;padding:0;margin:0}
+.revtbl .changelog ul{margin:0;gap:7px}
+/* 넘버(cl-loc) | 디스크립션(cl-txt) 2컬럼 분리 */
+.revtbl .changelog li.cl-jump,.revtbl .changelog li.cl-flat{display:grid;grid-template-columns:74px 1fr 14px;gap:12px;align-items:start;margin:0;padding:9px 10px}
+.revtbl .changelog li.cl-jump::before,.revtbl .changelog li.cl-flat::before{display:none}
+.revtbl .changelog li .cl-loc{margin-right:0;justify-self:start;white-space:nowrap;line-height:1.7}
+.revtbl .changelog li .cl-loc.out{background:#FFECEC;color:#EA5656}
+.revtbl .changelog li .cl-txt{min-width:0;border-left:1px solid var(--gray-100);padding-left:12px}
+.revtbl .changelog li .cl-go{position:static;transform:none;align-self:center;justify-self:end}
+.changelog li .cl-loc{display:inline-block;font-size:10.5px;font-weight:800;color:var(--primary-700);background:var(--primary-100);border-radius:5px;padding:1px 6px;margin-right:6px}
+.changelog li .m{color:var(--gray-500)}
+
+/* ===== 앱 셸: 사이드바(LNB) + 본문 ===== */
+.app-shell{position:relative;display:flex;align-items:flex-start;width:100%}
+.lnb-backdrop{position:fixed;top:57px;left:0;right:0;bottom:0;background:rgba(20,26,33,.4);z-index:55;
+  opacity:0;pointer-events:none;transition:opacity .2s ease}
+.lnb-backdrop.show{opacity:1;pointer-events:auto}
+
+/* ===== LNB (좌측 화면 목차 · 접었다 펼치는 사이드바) ===== */
+.lnb{flex-shrink:0;width:190px;box-sizing:border-box;display:flex;flex-direction:column;gap:2px;
+  background:#fff;border-right:1px solid var(--gray-100);padding:14px 10px;
+  position:sticky;top:57px;height:calc(100vh - 57px);overflow-y:auto;
+  transition:width .2s ease,padding .2s ease,transform .22s ease,opacity .18s ease}
+.lnb.collapsed{width:0;padding-left:0;padding-right:0;border-right:none;overflow:hidden}
+/* 좁은 화면: 사이드바가 GNB 아래에서 좌측에 착 붙어 오버레이로 열림/닫힘 */
+.lnb.overlay{position:fixed;left:0;top:57px;height:calc(100vh - 57px);width:230px;z-index:56;
+  box-shadow:4px 0 22px rgba(20,30,40,.16);transform:translateX(-100%);border-right:1px solid var(--gray-100)}
+.lnb.overlay.collapsed{width:230px;padding:14px 10px;transform:translateX(-100%)}
+.lnb.overlay.open{transform:translateX(0)}
+.lnb-t{font-size:9.5px;font-weight:800;color:var(--gray-400);letter-spacing:.7px;margin:4px 0 5px 9px;white-space:nowrap}
+.lnb-item{display:flex;align-items:center;gap:9px;width:100%;background:transparent;border:none;border-radius:9px;
+  padding:9px 9px;cursor:pointer;text-align:left;font-family:inherit;transition:background .12s}
+.lnb-item:hover{background:var(--gray-10)}
+.lnb-item.active{background:var(--primary-100)}
+.lnb-no{width:23px;height:23px;flex-shrink:0;border-radius:7px;background:var(--gray-10);color:var(--gray-500);
+  font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.lnb-item.active .lnb-no{background:var(--primary-600);color:#fff}
+.lnb-label{font-size:12px;font-weight:700;color:var(--gray-700);letter-spacing:-.3px;line-height:1.32;word-break:keep-all;white-space:nowrap}
+.lnb-item.active .lnb-label{color:var(--primary-800)}
+.main-content{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;padding:22px 16px 80px}
+.intro .tag{display:inline-block;background:var(--primary-200);color:var(--primary-800);
+  font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;margin-bottom:10px}
+.intro h1{font-size:20px;font-weight:800;letter-spacing:-.5px;margin-bottom:7px}
+.intro p{font-size:13px;line-height:1.65;color:var(--gray-700);letter-spacing:-.2px}
+.intro .dummy-note{font-size:11.5px;color:var(--gray-500);margin-top:7px;background:#fff;
+  border:1px dashed var(--gray-200);border-radius:8px;padding:7px 10px;line-height:1.5}
+
+/* ===== 컨트롤 (상세기획 패널 상단 데모 컨트롤) ===== */
+.spec .devctrl{margin-bottom:16px;padding-bottom:15px;border-bottom:1px solid var(--gray-100)}
+.spec .devctrl-t{display:block;font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.6px;margin-bottom:9px}
+.ctrl{display:flex;gap:8px;align-items:center;margin:0;max-width:none;flex-wrap:wrap}
+.ctrl .lbl{font-size:12px;font-weight:700;color:var(--gray-600)}
+.ctrl button{padding:9px 14px;border-radius:9px;border:1px solid var(--gray-200);font-size:12.5px;font-weight:700;
+  cursor:pointer;letter-spacing:-.2px;background:#fff;color:var(--gray-700)}
+.ctrl button.on{background:var(--gray-1000);color:#fff;border-color:var(--gray-1000)}
+.ctrl button.shuffle{background:var(--primary-600);color:#fff;border-color:var(--primary-600)}
+/* 데모 컨트롤이 좁은 memo 칸에 들어간 경우 — 컴팩트 세로 스택 */
+.spectbl td.memo .devctrl{text-align:left;margin-bottom:9px;padding-bottom:9px;border-bottom:1px dashed var(--gray-100)}
+.spectbl td.memo .devctrl-t{font-size:9px;letter-spacing:.4px;margin-bottom:6px}
+.spectbl td.memo .ctrl{flex-direction:column;align-items:stretch;gap:5px}
+.spectbl td.memo .ctrl .lbl{font-size:9.5px;color:var(--gray-500)}
+.spectbl td.memo .depBtns,.spectbl td.memo .memBtns,.spectbl td.memo .adBtns,.spectbl td.memo .emptyBtns{display:flex;flex-direction:column;gap:4px}
+.spectbl td.memo .ctrl button{padding:6px;font-size:10px;font-weight:700;border-radius:6px;width:100%;white-space:normal;line-height:1.25}
+
+/* ===== 폰 ===== */
+.phone{width:393px;height:760px;background:#fff;border-radius:44px;overflow:hidden;position:relative;
+  box-shadow:0 24px 60px rgba(20,30,40,.28);border:1px solid #d5dae0}
+.toast{position:absolute;left:50%;bottom:80px;transform:translateX(-50%) translateY(8px);z-index:60;
+  background:rgba(30,32,38,.92);color:#fff;font-size:12.5px;font-weight:600;letter-spacing:-.2px;
+  padding:11px 18px;border-radius:22px;white-space:nowrap;opacity:0;pointer-events:none;
+  transition:opacity .22s ease, transform .22s ease}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:26px;
+  background:#fff;z-index:30;border-radius:0 0 18px 18px}
+.status{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;
+  font-size:13px;font-weight:700;color:var(--gray-1000)}
+.scroll{height:660px;overflow-y:auto;background:#fff}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ===== 바텀 내비게이션 (홈 화면 전용) ===== */
+.bottom-nav{position:absolute;left:0;right:0;bottom:0;height:56px;background:#fff;border-top:1px solid var(--gray-100);
+  display:flex;z-index:40;box-shadow:0 -2px 10px rgba(20,30,40,.04)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  background:none;border:none;cursor:pointer;font-family:inherit;color:var(--gray-400)}
+.bn-item.active{color:var(--gray-1000)}
+.bn-ic{position:relative;font-size:20px;line-height:1}
+.bn-ic .dot{position:absolute;top:-2px;right:-4px;width:6px;height:6px;border-radius:50%;background:var(--negative);border:1.5px solid #fff}
+.bn-lb{font-size:10px;font-weight:700;letter-spacing:-.2px}
+
+/* 앱 헤더 */
+/* 상단 헤더 = 스크롤 시 폰 최상단 고정 */
+.home-header{position:sticky;top:0;z-index:30;background:#fff}
+.appbar{background:#fff;padding:6px 20px 12px;display:flex;align-items:center;justify-content:space-between}
+.appbar .brand{font-size:19px;font-weight:800;letter-spacing:-.5px}
+.appbar .right{display:flex;align-items:center;gap:15px}
+.appbar .ic-btn{position:relative;font-size:20px;line-height:1;cursor:pointer;color:var(--gray-700)}
+.appbar .ic-btn .dot{position:absolute;top:-1px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--negative);border:1.5px solid #fff}
+.appbar .loc{position:relative;font-size:20px;color:var(--gray-700);cursor:pointer;line-height:1}
+.appbar .loc.unset{color:var(--gray-300)}
+.searchbar{margin:0 20px 14px;background:var(--gray-10);border-radius:10px;height:42px;display:flex;
+  align-items:center;padding:0 14px;gap:8px;color:var(--gray-500);font-size:13.5px}
+.spacer{height:8px;background:transparent}
+
+/* ===== 홈 상단 요소: 아이콘 메뉴 / 시간대 탭 / 권역 퀵필터 / 배너 ===== */
+.icon-menu{display:flex;gap:8px;overflow-x:auto;padding:2px 20px 10px;scroll-snap-type:x proximity}
+.icon-menu::-webkit-scrollbar{height:0}
+.im-item{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;width:58px;cursor:pointer;background:none;border:none;font-family:inherit}
+.im-ic{position:relative;width:50px;height:50px;border-radius:50%;background:var(--gray-10);display:flex;align-items:center;justify-content:center;font-size:23px}
+.im-ic .dot{position:absolute;top:1px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--negative);border:1.5px solid #fff}
+.im-item .im-lb{font-size:10.5px;color:var(--gray-700);font-weight:600;white-space:nowrap}
+.im-item.promo .im-ic{background:var(--primary-600);color:#fff;font-size:11px;font-weight:800;text-align:center;line-height:1.2}
+.im-item.promo .im-lb{color:var(--primary-700);font-weight:700}
+.im-scrollbar{width:30px;height:3px;border-radius:2px;background:var(--gray-100);margin:0 20px 12px;position:relative;overflow:hidden}
+.im-scrollbar::after{content:'';position:absolute;left:0;top:0;width:13px;height:100%;background:var(--gray-500);border-radius:2px}
+
+.time-tabs{display:flex;gap:16px;padding:2px 20px 0}
+.time-tab{font-size:13.5px;color:var(--gray-400);font-weight:600;background:none;border:none;cursor:pointer;font-family:inherit;padding:2px 0;position:relative}
+.time-tab.active{color:var(--gray-1000);font-weight:800}
+
+.rgn-quick{display:flex;gap:8px;overflow-x:auto;padding:12px 20px;scroll-snap-type:x proximity}
+.rgn-quick::-webkit-scrollbar{height:0}
+.rq-card{flex-shrink:0;width:108px;background:var(--gray-10);border-radius:12px;padding:13px 12px;text-align:center;cursor:pointer;border:none;font-family:inherit}
+.rq-card .rq-t{font-size:13px;font-weight:700;color:var(--gray-800);white-space:nowrap}
+.rq-card .rq-n{font-size:14px;font-weight:800;color:var(--primary-600);margin-top:4px}
+
+.ph-banner{margin:0 20px 12px;background:var(--gray-50);border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:var(--gray-400);cursor:pointer}
+
+.radar-cta{margin:4px 20px 0;background:var(--primary-100);border:1px solid var(--primary-200);border-radius:14px;
+  padding:14px 16px;display:flex;align-items:center;gap:11px;cursor:pointer}
+.radar-cta .ic{width:34px;height:34px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.radar-cta .txt{flex:1;min-width:0}
+.radar-cta .t1{font-size:13px;font-weight:800;color:var(--gray-900);letter-spacing:-.3px}
+.radar-cta .t2{font-size:12.5px;font-weight:700;color:var(--primary-700);margin-top:3px}
+
+/* ===== 추천 섹션 ===== */
+/* 홈 콘텐츠 섹션 공통 세로 리듬 — 상단 24px 통일, 하단은 다음 섹션 상단 패딩이 담당 */
+.section,.dummy,.joinsec,.eventsec{padding-top:28px;padding-bottom:0}
+.section{background:#fff}
+.sec-head{padding:0 20px;margin-bottom:12px}
+.sec-head .title-row{display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative}
+/* 출발지 유도 툴팁 — 타이틀 위, 아래쪽 꼬리가 위치 핀을 가리킴 (미설정 시에만) */
+.sec-tip{display:inline-block;position:relative;background:#2b2f36;color:#fff;font-size:12.5px;font-weight:700;
+  letter-spacing:-.2px;padding:9px 14px;border-radius:8px;margin-bottom:12px;white-space:nowrap;cursor:pointer}
+.sec-tip::after{content:'';position:absolute;top:100%;left:16px;border:6px solid transparent;border-top-color:#2b2f36}
+/* 타이틀 내 위치(📍+동) = 출발지 · 초록 밑줄 + 📍 핀 (셰브론 제거) */
+.sec-head .loc-link{border-bottom:2.5px solid var(--primary-600);padding-bottom:1px;cursor:pointer;white-space:nowrap}
+.sec-head .loc-link .chev{width:13px;height:13px;stroke:var(--primary-600);fill:none;vertical-align:-1px;margin-left:1px}
+.sec-head .loc-link .loc-pin{font-size:12px;margin-right:1px;vertical-align:-1px}
+.sec-head .title-wrap{display:flex;align-items:center;gap:6px;min-width:0}
+.sec-head .title{font-size:17px;font-weight:800;letter-spacing:-.4px;white-space:nowrap}
+.sec-head .more{font-size:12.5px;color:var(--gray-400);font-weight:600;flex-shrink:0;cursor:pointer}
+.gcard.cta .cta-loc{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;color:var(--primary-700);margin-bottom:14px;letter-spacing:-.2px}
+.gcard.cta .cta-loc svg{width:13px;height:13px;flex-shrink:0}
+.sec-head .sub{font-size:12.5px;color:var(--gray-600);margin-top:5px;letter-spacing:-.2px;display:flex;align-items:center;gap:5px}
+.sec-head .sub .hl{color:var(--primary-700);font-weight:700}
+.sec-head .rndchip{font-size:10px;font-weight:800;color:var(--primary-700);background:var(--primary-100);
+  border:1px solid var(--primary-200);border-radius:20px;padding:2px 7px;margin-left:2px}
+
+/* ===== 홈 카드: 2.5열 × 2행 좌우 스와이프 (새 포맷) ===== */
+.hrail{display:flex;gap:8px;overflow-x:auto;padding:0 20px;scroll-snap-type:x proximity;scroll-padding-left:20px}
+.hrail::-webkit-scrollbar{height:0}
+.col2{width:154px;flex-shrink:0;scroll-snap-align:start;display:flex;flex-direction:column;gap:8px}
+.gcard{border:1px solid var(--gray-100);border-radius:10px;padding:12px;background:#fff;
+  display:flex;flex-direction:column;min-width:0;min-height:112px}
+.gcard .nm{font-size:14px;font-weight:800;letter-spacing:-.4px;color:var(--gray-1000);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcard .rg{font-size:11.5px;color:var(--gray-600);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcard .rg .star{color:var(--primary-600);font-weight:700}
+.gcard .rg .ad{color:var(--gray-400);font-weight:700}
+.gcard .rg .adx{color:var(--gray-400)}                      /* 자사 슬롯 AD(추후) — 권역·별점과 동일 굵기(회색) */
+.gcard .tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.gcard .tag{font-size:10px;font-weight:600;color:var(--gray-600);background:var(--gray-10);
+  padding:3px 7px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+/* 하단 행: 가격(좌) + 잔여팀(우, 초록) */
+.gcard .prow{display:flex;align-items:baseline;justify-content:space-between;gap:6px;margin-top:auto;padding-top:5px}
+.gcard .pr{font-size:14px;font-weight:800;color:var(--gray-1000);letter-spacing:-.4px;white-space:nowrap}
+.gcard .avail{font-size:13px;font-weight:800;color:var(--primary-600);letter-spacing:-.2px;white-space:nowrap}
+.gcard .avail.soldout{color:var(--gray-400)}
+.gcard .pr.ref{font-size:13px;font-weight:700;color:var(--gray-800)}   /* 홈페이지 참조 = 활성(가격만 대체) — 매진 회색과 구분되는 진한 톤 */
+/* 출발지 설정 유도 CTA 카드 (첫 카드) */
+.gcard.cta{background:var(--primary-100);border-color:var(--primary-200);justify-content:center;cursor:pointer;text-align:left}
+.gcard.cta .ic{font-size:20px;line-height:1;margin-bottom:8px}
+.gcard.cta .msg{font-size:13px;font-weight:700;color:var(--primary-800);line-height:1.45;letter-spacing:-.3px}
+.gcard.cta .go{font-size:12px;font-weight:800;color:var(--primary-600);margin-top:8px}
+
+/* 더미 */
+.dummy{position:relative;padding-left:0;padding-right:0}
+.dummy .h{font-size:17px;font-weight:800;letter-spacing:-.4px;margin-bottom:12px;color:var(--gray-800);padding:0 20px}
+/* 국내투어/해외투어 탭 + 모두보기 */
+.pkg-tabs{display:flex;align-items:center;gap:16px;padding:0 20px;border-bottom:1px solid var(--gray-10);margin-bottom:12px}
+.pkg-tab{font-size:14px;font-weight:600;color:var(--gray-400);background:none;border:none;cursor:pointer;font-family:inherit;padding:2px 0 9px;position:relative}
+.pkg-tab.active{color:var(--gray-1000);font-weight:800}
+.pkg-tab.active::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--gray-1000)}
+.pkg-tab .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--negative);margin-left:4px;vertical-align:top}
+.pkg-more{margin-left:auto;font-size:12.5px;color:var(--gray-400);font-weight:600;cursor:pointer;padding-bottom:9px}
+/* 권역 칩 필터 */
+.pkg-rgn{display:flex;gap:8px;overflow-x:auto;padding:0 20px 14px;scroll-snap-type:x proximity}
+.pkg-rgn::-webkit-scrollbar{height:0}
+.pkg-rgn-chip{flex-shrink:0;padding:7px 14px;border-radius:18px;border:1px solid var(--gray-100);background:#fff;
+  font-size:12.5px;font-weight:600;color:var(--gray-500);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .12s}
+.pkg-rgn-chip.on{background:var(--gray-1000);border-color:var(--gray-1000);color:#fff;font-weight:700}
+/* 패키지 카드 */
+.dummy .drow{display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px;scroll-snap-type:x proximity;scroll-padding-left:20px}
+.dummy .drow::-webkit-scrollbar{height:0}
+/* 열(2행 스택) — 3열 = 총 6개, 좌우 스와이프 */
+.dcol{display:flex;flex-direction:column;gap:16px;flex-shrink:0;width:300px;scroll-snap-align:start}
+/* 가로형 카드: 이미지(좌) + 텍스트(우) */
+.dcard{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.dcard .im{width:96px;height:96px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,#9fc4a9,#6ea37e);position:relative}
+.dcard .im.ad{background:#1f3b2c}
+.dcard .dtxt{flex:1;min-width:0;display:flex;flex-direction:column;min-height:96px}
+.dcard .meta .adt{color:var(--gray-400);font-weight:700}
+.dcard .adbadge{position:absolute;top:8px;right:8px;font-size:10px;font-weight:800;color:var(--gray-500);
+  border:1px solid var(--gray-200);border-radius:4px;padding:1px 6px;background:#fff}
+.dcard .tt{font-size:14px;font-weight:700;color:var(--gray-800);line-height:1.35}
+.dcard .meta{font-size:12.5px;color:var(--gray-400);margin-top:4px}
+.dcard .pp{font-size:14px;font-weight:800;color:var(--gray-1000);margin-top:auto}
+
+/* ===== 실시간 조인 / 이벤트 참여해볼래? ===== */
+.jh-row{display:flex;align-items:baseline;justify-content:space-between;padding:0 20px;margin-bottom:12px}
+.jh-t{font-size:17px;font-weight:800;color:var(--gray-1000);letter-spacing:-.4px}
+.jh-more{font-size:12.5px;color:var(--gray-400);font-weight:600;cursor:pointer}
+.join-row{display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px;scroll-snap-type:x proximity;scroll-padding-left:20px}
+.join-row::-webkit-scrollbar{height:0}
+.jcard{flex-shrink:0;width:152px;background:var(--gray-5);border-radius:14px;padding:16px;scroll-snap-align:start;cursor:pointer}
+.jcard .jc-time{font-size:13px;font-weight:800;color:var(--primary-600)}
+.jcard .jc-nm{font-size:14px;font-weight:800;color:var(--gray-1000);margin-top:6px;letter-spacing:-.3px}
+.jcard .jc-rg{font-size:12.5px;color:var(--gray-500);margin-top:4px}
+.jcard .jc-rg .star{color:var(--primary-600)}
+.jcard .jc-pr{font-size:13.5px;font-weight:700;color:var(--gray-700);margin-top:10px}
+.jcard .jc-div{height:1px;background:var(--gray-100);margin:12px 0 10px}
+.jcard .jc-avatars{display:flex;align-items:center}
+.jav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:#fff;margin-left:-8px;border:2px solid #fff;flex-shrink:0}
+.jav:first-child{margin-left:0}
+.jav.plus{background:var(--gray-100);color:var(--gray-400);font-weight:800}
+.event-row{display:flex;gap:12px;overflow-x:auto;padding:0 20px 4px;scroll-snap-type:x proximity;scroll-padding-left:20px}
+.event-row::-webkit-scrollbar{height:0}
+.ev-card{flex-shrink:0;width:280px;height:280px;border-radius:14px;position:relative;scroll-snap-align:start;cursor:pointer}  /* 정방형 배너 */
+.ev-card.ad{background:var(--gray-50)}
+.ev-card.grad{background:linear-gradient(135deg,#bfe8d2,#8fd4ab)}
+.ev-card .adbadge{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;color:var(--gray-500);
+  border:1px solid var(--gray-200);border-radius:4px;padding:1px 6px;background:#fff}
+
+/* 삭제 예정 영역(선결제하고 할인받기) — 스펙 주석용 대시 박스 */
+.removed-area{position:relative;margin:28px 20px 0;padding:15px;border:1.5px dashed var(--gray-200);border-radius:12px;
+  display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gray-5)}
+.removed-area .ra-txt{font-size:13px;font-weight:700;color:var(--gray-400);text-decoration:line-through}
+.removed-area .ra-tag{font-size:10px;font-weight:800;color:#C2410C;background:#FFEDD5;border:1px solid #FED7AA;border-radius:5px;padding:2px 6px}
+
+/* ===== 티타임 레이더 · 추천 탭 (모두보기 이동) — 참고 파일 구조 반영 ===== */
+.rscreen{height:716px;display:none;flex-direction:column;background:#fff}
+.hdr{height:54px;border-bottom:1px solid #e5e8ec;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+.hdr-back{position:absolute;left:0;width:44px;height:54px;display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;font-size:20px;color:#272833}
+.hdr-title{font-size:16px;font-weight:700;color:#272833;letter-spacing:-.4px}
+.tab-bar{display:flex;border-bottom:1px solid #e5e8ec;flex-shrink:0}
+.tab-btn{flex:1;text-align:center;padding:9px 0;font-size:12px;color:#9ba5b0;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit}
+.tab-btn.active{font-weight:700;color:#272833;border-bottom-color:#272833}
+.scroll-body{flex:1;overflow-y:auto}
+/* 레이더 탭 = 티타임레이더 소개(생성) 페이지 */
+.radar-intro{flex:1;display:none;flex-direction:column;padding:16px 20px 20px}
+.radar-intro.on{display:flex}
+.ri-banner{display:flex;align-items:center;gap:9px;background:var(--primary-100);color:var(--primary-700);font-size:14px;font-weight:700;border-radius:12px;padding:14px 16px;letter-spacing:-.3px;cursor:pointer;flex-shrink:0}
+.ri-banner .ri-ic{width:20px;height:20px;flex-shrink:0}
+.ri-banner .ri-arw{margin-left:auto;color:var(--primary-600);font-weight:800;font-size:16px}
+.ri-title{margin-top:38px;text-align:center;font-size:22px;font-weight:800;line-height:1.4;letter-spacing:-.6px;color:var(--gray-1000)}
+.ri-sub{margin-top:15px;text-align:center;font-size:15px;color:var(--gray-500);letter-spacing:-.4px}
+.ri-illust{flex:1;display:flex;align-items:center;justify-content:center;padding:16px 0}
+.ri-illust svg{width:150px;height:150px}
+.ri-cta{flex-shrink:0;text-align:center;background:var(--primary-600);color:#fff;font-size:16px;font-weight:800;border-radius:14px;padding:17px;letter-spacing:-.3px;cursor:pointer}
+.scroll-body::-webkit-scrollbar{width:0}
+.date-strip{background:#fff;border-bottom:1px solid #f0f2f5;padding:6px 16px 10px 0;display:flex;align-items:center;gap:2px;overflow-x:auto;flex-shrink:0}
+/* 홈 날짜 스트립(주력) = 상단 헤더 아래에 함께 고정 (top은 JS로 헤더 높이에 맞춤) */
+#homeDates{position:sticky;top:84px;z-index:29;background:#fff}
+#radarDates{border-bottom:none;padding-top:12px;padding-bottom:16px}
+.date-strip::-webkit-scrollbar{height:0}
+/* '7월' 라벨 = 좌측 고정, 날짜가 그 뒤(아래 z-index)로 스와이프 */
+.date-month{font-size:13px;font-weight:600;color:#272833;display:inline-flex;align-items:center;gap:2px;cursor:pointer;
+  flex-shrink:0;position:sticky;left:0;z-index:2;background:#fff;align-self:stretch;padding-left:16px;padding-right:9px;
+  box-shadow:8px 0 7px -6px rgba(20,30,40,.10)}
+.date-item{display:flex;flex-direction:column;align-items:center;gap:2px;width:34px;padding:5px 0;border-radius:18px;background:transparent;border:none;cursor:pointer;flex-shrink:0}
+.date-item.active{background:#272833}
+.date-day{font-size:10px;color:#9ba5b0}
+.date-item.active .date-day{color:rgba(255,255,255,.6)}
+.date-num{font-size:14px;color:#272833}
+.date-item.active .date-num{color:#fff;font-weight:700}
+.date-num.sat{color:#2697ff}.date-num.sun{color:#ef3434}
+.date-day.sat{color:rgba(38,151,255,.65)}.date-day.sun{color:rgba(239,52,52,.65)}
+/* (예약 불가 일자 흐림 표기 = 차기 개선 과제로 이관 · 이번 스펙 제외) */
+/* 추천 결과 없음 빈 상태 (선택 일자에 예약 가능 골프장 없음) */
+.rec-empty{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:72px 24px 40px}
+.rec-empty svg{width:62px;height:62px;stroke:var(--gray-300);stroke-width:1.1;fill:none;margin-bottom:24px}
+.rec-empty .et{font-size:16px;font-weight:800;color:var(--gray-800);letter-spacing:-.3px}
+.rec-empty .es{margin-top:11px;font-size:14px;color:var(--gray-400);letter-spacing:-.3px;line-height:1.5}
+/* 레이더 출발지 설정 유도 배너 (미설정 유저만 노출) */
+.rdep{position:relative;display:flex;align-items:center;gap:12px;margin:12px 16px;padding:14px 16px;background:var(--primary-100);
+  border:1px solid var(--primary-200);border-radius:14px;cursor:pointer}
+.rdep .rdep-ic{font-size:22px;flex-shrink:0}
+.rdep .rdep-txt{flex:1;min-width:0}
+.rdep .rdep-loc{display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:800;color:var(--primary-700);letter-spacing:-.2px;margin-bottom:4px}
+.rdep .rdep-loc svg{width:13px;height:13px;flex-shrink:0}
+.rdep .rdep-t1{font-size:13.5px;font-weight:800;color:var(--primary-800);letter-spacing:-.3px;line-height:1.4}
+.rdep .rdep-go{font-size:12.5px;font-weight:800;color:var(--primary-600);margin-top:5px}
+/* 권역 칩 (검색결과 상단) */
+.rgn-chip{flex-shrink:0;padding:7px 14px;border-radius:20px;border:1px solid #e0e6ec;background:#fff;font-size:13px;color:#535d67;cursor:pointer;font-family:inherit;white-space:nowrap}
+.rgn-chip.on{background:#272833;color:#fff;border-color:#272833;font-weight:700}
+/* 권역별 인기 골프장 카드 */
+.pcard{background:#fff;padding:16px;border-bottom:1px solid #f0f2f5}
+.pc-top{position:relative;display:flex;align-items:center;gap:8px}
+.pc-namewrap{display:flex;align-items:baseline;gap:7px;min-width:0}
+.pc-rank{font-size:16px;font-weight:800;color:#1ab277;letter-spacing:-.5px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.pc-name{flex:1;min-width:0;font-size:15px;font-weight:700;color:#272833;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-heart{background:none;border:none;cursor:pointer;font-size:17px;line-height:1;padding:0;flex-shrink:0;color:#c5ccd4}
+.pc-heart.on{color:#EA5656}   /* 활성/비활성 동일 ♥ 글리프 → 색만 차이(크기 동일) */
+.pc-region{font-size:11.5px;color:#9ba5b0;flex-shrink:0;white-space:nowrap}
+.pc-region .pc-star{color:var(--primary-600)}   /* 별 아이콘=초록 · 숫자=회색 */
+/* 구장 귀속 뱃지 — 레이더는 박스 없이 텍스트만 (구장별 · 있는 곳만). 동시오픈=초록 */
+.pc-tags{font-size:12px;font-weight:600;color:#0057d9;margin-top:7px}
+.pc-tags .t-alltime{color:var(--primary-600)}
+.pc-tags .t-deal{color:var(--primary-600)}   /* 멤버십 특가 = 초록 */
+.pc-ctx{font-size:12.5px;font-weight:700;color:#1ab277;margin-top:7px;letter-spacing:-.2px;position:relative}
+.pc-price-row{position:relative;display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.pc-price{font-size:15px;font-weight:700;color:#272833;letter-spacing:-.4px}
+.pc-price.ref{color:var(--gray-800)}                          /* 홈페이지 참조 = 활성(가격만 대체) */
+.pc-avail-txt{font-size:13px;font-weight:700;color:var(--primary-600)}  /* 외부예약 카드의 잔여팀(폴딩 없음) */
+.pc-fold{position:relative;background:none;border:none;cursor:pointer;font-family:inherit;font-size:13px;color:#1ab277;font-weight:600;
+  display:flex;align-items:center;gap:4px;padding:4px 0;white-space:nowrap;position:relative}
+.pc-fold .arw{font-size:12px}
+.pc-teetime{position:relative}
+.pc-slots{display:flex;gap:8px;margin-top:11px;overflow-x:auto;padding-bottom:2px}
+.pc-slots::-webkit-scrollbar{height:0}
+.pcard.collapsed .pc-teetime{display:none}
+/* 리스트 최하단 '전체 목록 보러가기' 버튼 */
+.alllist-btn{position:relative;display:flex;align-items:center;justify-content:center;gap:4px;width:calc(100% - 40px);margin:16px 20px 6px;padding:14px 0;background:#fff;border:1px solid #d4dae1;border-radius:12px;font-size:14px;font-weight:800;color:#272833;cursor:pointer}
+.alllist-btn:hover{background:#f5f7f9}
+.alllist-btn .ar{font-weight:400;color:#8a929c}
+/* ===== 검색결과 리스트 화면 (실제 디자인) ===== */
+.sr-head{display:flex;align-items:center;gap:2px;padding:8px 10px 8px 6px;flex-shrink:0}
+.sr-head .hdr-back{position:static;flex-shrink:0;width:32px;height:32px;font-size:19px}
+.sr-rgns{display:flex;gap:7px;overflow-x:auto;flex:1;padding:2px 0}
+.sr-rgns::-webkit-scrollbar{height:0}
+#searchDates{padding-top:2px;padding-bottom:10px}
+.sr-quick{display:flex;gap:16px;padding:13px 16px;overflow-x:auto;background:#f7f9fb;flex-shrink:0}
+.sr-quick::-webkit-scrollbar{height:0}
+.qf{display:flex;flex-direction:column;align-items:center;gap:7px;flex-shrink:0;font-size:11.5px;color:#4a5560;font-weight:600;white-space:nowrap;cursor:pointer}
+.qf-ic{width:46px;height:46px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 1px 4px rgba(20,30,40,.07)}
+.sr-fbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;flex-shrink:0}
+.sr-fbtn{position:relative;display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border:1px solid #1ab277;border-radius:8px;background:#fff;color:#128158;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
+.sr-fbtn .sr-dot{position:absolute;top:4px;right:5px;width:5px;height:5px;border-radius:50%;background:#ea5656}
+.sr-fright{display:flex;align-items:center;gap:14px;font-size:13.5px;color:#272833;font-weight:600}
+.sr-fright .sr-sort{font-weight:700}
+.sr-fright .sr-avail{cursor:pointer;color:#8a929c;font-weight:600}
+.sr-fright .sr-avail.on{color:#1ab277;font-weight:700}
+.sr-divider{height:7px;background:#f2f4f7}
+/* 리스트 아이템 */
+.srx{padding:16px;border-bottom:1px solid #f2f4f7;cursor:pointer}
+.srx-head{display:flex;gap:12px}
+.srx-thumb{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,#9fc4a9,#6ea37e)}
+.srx-body{flex:1;min-width:0}
+.srx-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.srx-nm{font-size:15px;font-weight:800;color:#272833;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srx-meta{font-size:11.5px;color:#8a929c;white-space:nowrap;flex-shrink:0}
+.srx-meta .srx-star{color:#1ab277;font-weight:700}   /* 별 아이콘=초록 · 숫자=회색(srx-meta 상속) */
+.srx-tags{font-size:12.5px;color:#0057d9;font-weight:600;margin-top:7px}
+.srx-tags .t-deal{color:var(--primary-600)}   /* 멤버십 특가 = 초록 */
+.srx-tags .t-refund{color:#0057d9}
+.srx-tags .t-open{color:var(--primary-600)}
+.srx-tags .adt{color:#9ba5b0}
+.srx-bot{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.srx-price{font-size:15px;font-weight:800;color:#272833}
+.srx-price.ref{font-size:14px;font-weight:700;color:var(--gray-800)}   /* 외부예약 = 홈페이지 참조(가격만 대체) */
+.srx-fold{display:inline-flex;align-items:center;gap:4px;font-size:13.5px;color:#1ab277;font-weight:700;background:none;border:none;font-family:inherit;cursor:pointer}
+.srx-fold .fa{display:inline-flex;width:18px;height:18px;border-radius:50%;background:#e1f6ec;align-items:center;justify-content:center;font-size:10px}
+.srx-sold{font-size:13.5px;color:#1ab277;font-weight:700}
+.srx-ref{font-size:14px;font-weight:700;color:var(--gray-800)}   /* 외부예약 = 홈페이지 참조(가격만 대체 · 활성) */
+.srx-avail-txt{font-size:13.5px;font-weight:700;color:#1ab277}   /* 외부예약 카드의 잔여팀(폴딩 없음) */
+.srx-alarm{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#6b7684;font-weight:600}
+.srx-alarm .pl{display:inline-flex;width:20px;height:20px;border-radius:50%;background:#eef2f5;align-items:center;justify-content:center;font-size:13px;color:#8a929c}
+.srx-slots{display:flex;gap:8px;margin-top:13px;overflow-x:auto;padding-bottom:2px}
+.srx-slots::-webkit-scrollbar{height:0}
+.srx.collapsed .srx-slots{display:none}
+/* 플로팅 필터|정렬 */
+.sr-fab{position:absolute;left:50%;bottom:18px;transform:translate(-50%,20px);display:inline-flex;align-items:center;gap:9px;
+  background:#1ab277;color:#fff;font-size:14px;font-weight:700;padding:12px 22px;border-radius:24px;box-shadow:0 6px 18px rgba(26,178,119,.42);z-index:20;white-space:nowrap;cursor:pointer;
+  opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease}
+.sr-fab.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.sr-fab .sr-fab-bar{opacity:.45}
+.pc-slot{flex-shrink:0;min-width:82px;border:1px solid #e0e6ec;border-radius:8px;padding:9px 12px;display:flex;flex-direction:column;min-height:58px}   /* 고정폭 제거 → 환급할인·선결제 등 내용 hug(가변 폭) */
+.pc-slot .t{font-size:13px;font-weight:700;color:#272833;margin-bottom:2px}
+.pc-slot .d{font-size:11px;font-weight:600;margin-bottom:2px;white-space:nowrap}
+.pc-slot .d .d-r{color:#0057d9}
+.pc-slot .d .d-p{color:#9ba5b0}
+.pc-slot .p{font-size:12px;font-weight:700;color:#272833;margin-top:auto}
+.pc-slot .p.down{color:#1ab277}
+.pc-slot .p.ref{font-weight:700;color:var(--gray-800);white-space:nowrap}   /* 홈페이지 참조 = 그린피 자리 대체(진한 톤) */
+
+/* ===== Position 상세기획 (폰 우측) ===== */
+.stage{display:flex;gap:34px;align-items:flex-start;justify-content:flex-start;flex-wrap:nowrap;width:fit-content;min-width:min-content;margin:0 auto}
+.spec{width:640px;flex-shrink:0;background:#fff;border:1px solid var(--gray-100);border-radius:16px;
+  padding:20px 22px;box-shadow:0 10px 34px rgba(20,30,40,.09)}
+.spec .sp-tag{display:inline-block;background:#FFECEC;color:#EA5656;font-size:10.5px;font-weight:800;
+  padding:3px 9px;border-radius:20px;margin-bottom:10px;letter-spacing:.3px}
+.spec h2{font-size:16px;font-weight:800;letter-spacing:-.4px;color:var(--gray-1000)}
+.spec .lead{font-size:11.5px;color:var(--gray-500);margin-top:4px;line-height:1.5}
+/* 상세기획 표 */
+.spectbl{width:100%;border-collapse:collapse;margin-top:12px;table-layout:fixed}
+.spectbl th{background:var(--gray-1000);color:#fff;font-size:11px;font-weight:800;padding:8px 6px;text-align:center;letter-spacing:-.2px}
+.spectbl th.c-no{width:30px}.spectbl th.c-type{width:74px}.spectbl th.c-memo{width:76px}
+.spectbl td{border:1px solid var(--gray-100);padding:9px 8px;vertical-align:top;font-size:11.5px;line-height:1.5;color:var(--gray-700)}
+.spectbl td.no{text-align:center;font-weight:800;color:var(--gray-800)}
+.spectbl td.type{font-weight:700;color:var(--gray-900);word-break:keep-all}
+.spectbl td.memo{text-align:center;color:var(--gray-400);font-size:10.5px}
+.spectbl .oos{display:inline-block;font-size:9px;font-weight:800;color:#C2410C;background:#FFEDD5;border:1px solid #FED7AA;padding:2px 5px;border-radius:5px;line-height:1.3;white-space:nowrap}
+.spectbl .oos-note{color:var(--gray-500);font-size:9.5px;margin-top:4px;line-height:1.35}
+.spectbl .memo-idea{margin-top:9px;padding-top:8px;border-top:1px dashed var(--gray-100)}
+.spectbl .idea-tag{display:inline-block;font-size:9px;font-weight:800;color:#0057D9;background:#E4EEFF;border:1px solid #C7DCFF;padding:2px 5px;border-radius:5px;white-space:nowrap}
+.spectbl .memo-grp{text-align:left;margin-bottom:10px}
+.spectbl .memo-grp .memo-list{list-style:none;margin:5px 0 0;padding:0}
+.spectbl .memo-grp .memo-list li{position:relative;padding-left:8px;font-size:9.5px;color:var(--gray-600);line-height:1.4;margin-bottom:3px}
+.spectbl .memo-grp .memo-list li::before{content:'-';position:absolute;left:0;color:var(--gray-400)}
+.spectbl .d1{position:relative;padding-left:11px;margin:2px 0;font-weight:600;color:var(--gray-800)}
+.spectbl .d1::before{content:'•';position:absolute;left:1px;color:var(--gray-400)}
+.spectbl .d2{position:relative;padding-left:24px;margin:2px 0;color:var(--gray-600)}
+.spectbl .d2::before{content:'◦';position:absolute;left:13px;color:var(--gray-300)}
+.spectbl b{color:var(--gray-1000);font-weight:700}
+.spectbl .hl{color:var(--gray-1000);font-weight:700}
+.spectbl .chg{color:var(--gray-1000);font-weight:700}
+.spectbl .lnk{color:#0057D9;font-weight:700}                                   /* 이동 대상 표기(실제 링크 아님 → 밑줄 없음) */
+.spectbl a{color:#0057D9;text-decoration:underline;font-weight:700}            /* 실제 하이퍼링크만 밑줄 */
+/* 카테고리 태그 (노출/로직/액션/케이스) */
+.spectbl .dl{display:flex;gap:6px;align-items:flex-start;margin:5px 0}
+.spectbl .dl .tx{flex:1;min-width:0}
+.spectbl .m{color:var(--gray-500)}
+.spectbl .ord{display:inline-block;margin-top:5px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--gray-700);letter-spacing:3px;line-height:1.75;background:var(--gray-10);padding:6px 11px;border-radius:7px}
+.spectbl .sn{flex-shrink:0;min-width:24px;font-size:10.5px;font-weight:800;color:var(--gray-600);margin-top:1px}
+.cat{flex-shrink:0;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:0;margin-top:1px;white-space:nowrap;line-height:1.25}
+.cat.c-show{background:#EEF1F4;color:#59636F}
+.cat.c-logic{background:#E4EEFF;color:#0057D9}
+.cat.c-act{background:#E1F6EC;color:#128158}
+.cat.c-case{background:#FFF1DC;color:#AE7A16}
+.cat-legend{display:flex;flex-wrap:wrap;gap:9px;margin:9px 0 2px;font-size:10.5px;color:var(--gray-500);align-items:center}
+.cat-legend span{display:inline-flex;align-items:center;gap:3px}
+.spectbl td{transition:background .12s,border-color .12s}
+.spectbl tbody tr.hl-row td{background:#FFF1F2;border-color:#F0A9AE}
+.spectbl tbody tr.hl-row td.no{background:#EA5656;color:#fff}
+.spectbl td.no{cursor:pointer}
+.spectbl td.no:hover{background:#EA5656;color:#fff;text-decoration:underline}
+.anno.pulse{animation:annoPulse 1.1s ease}
+@keyframes annoPulse{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,86,86,.55)}30%{transform:scale(1.4)}70%{box-shadow:0 0 0 13px rgba(234,86,86,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(234,86,86,0)}}
+.spec .grp{margin-top:18px}
+.spec .grp-t{font-size:12.5px;font-weight:800;color:var(--gray-800);margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1.5px solid var(--gray-50);letter-spacing:-.2px}
+.spec .item{display:flex;gap:9px;margin-bottom:11px}
+.spec .num{width:19px;height:19px;flex-shrink:0;border-radius:50%;background:#EA5656;color:#fff;
+  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.spec .bd{font-size:12px;line-height:1.6;color:var(--gray-700);letter-spacing:-.2px}
+.spec .bd b{color:var(--gray-1000);font-weight:700}
+.spec .bd .hl{color:var(--primary-700);font-weight:700}
+.spec .bd ul{margin:5px 0 0;padding-left:15px}
+.spec .bd li{margin-bottom:3px}
+.spec .bd .note{color:var(--gray-500)}
+/* 폰 위 번호 마커 */
+.anno{position:absolute;width:20px;height:20px;border-radius:50%;background:#EA5656;color:#fff;cursor:pointer;
+  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:16;
+  box-shadow:0 2px 6px rgba(0,0,0,.28);border:1.5px solid #fff}
+.sec-head{position:relative}
+.sec-head .more{position:relative}
+.gcard{position:relative}
+</style>
+</head>
+<body>
+
+<header class="gnb">
+  <button class="gnb-burger" id="burgerBtn" onclick="toggleSidebar()" aria-label="메뉴 열기/닫기"><span></span><span></span><span></span></button>
+  <div class="gnb-brand">
+    <span class="gnb-logo">⛳</span>
+    <div class="gnb-txt">
+      <span class="gnb-title">룰베이스 추천 기획안 <span class="gnb-ver">v0.9</span></span>
+      <span class="gnb-sub">화면 프로토타입 &amp; 상세기획</span>
+    </div>
+  </div>
+</header>
+
+<div class="app-shell">
+  <div class="lnb-backdrop" id="lnbBackdrop" onclick="closeSidebar()"></div>
+  <aside class="lnb" id="lnb">
+    <div class="lnb-t">SCREENS</div>
+    <button class="lnb-item active" id="toc-home" data-screen="home" onclick="goScreen('home')"><span class="lnb-no">01</span><span class="lnb-label">홈 · 추천 영역</span></button>
+    <button class="lnb-item" id="toc-radar" data-screen="radar" onclick="goScreen('radar')"><span class="lnb-no">02</span><span class="lnb-label">티타임 레이더 &gt; 추천 탭</span></button>
+    <div class="lnb-t" style="margin-top:16px">REVISION HISTORY</div>
+    <button class="lnb-item" id="toc-revision" data-screen="revision" onclick="goScreen('revision')"><span class="lnb-no">v9</span><span class="lnb-label">v0.9 변경사항</span></button>
+  </aside>
+<main class="main-content">
+<div class="stage">
+<div class="phone">
+  <div class="notch"></div>
+  <div class="toast" id="toast"></div>
+  <div class="status"><span>9:41</span><span>⬤ ⬤ ⬤ &nbsp;100%</span></div>
+
+  <!-- ===== 홈 화면 ===== -->
+  <div class="scroll" id="homeScreen">
+    <!-- 상단 브랜드바 — 스크롤 시 상단 고정(검색바는 분리되어 스크롤 다운 시 미노출) -->
+    <div class="home-header">
+      <div class="appbar">
+        <div class="brand">카카오골프예약</div>
+        <div class="right">
+          <span class="ic-btn">🔔<span class="dot"></span></span>
+          <span class="loc" id="loc" onclick="setDeparture('강원/양구')">📍</span>
+        </div>
+      </div>
+    </div>
+    <!-- 검색바 = 비고정 → 스크롤 다운 시 위로 올라가 브랜드바 뒤로 미노출 -->
+    <div class="searchbar">🔍 지역, 골프장명, 키워드 검색</div>
+
+    <!-- 아이콘 메뉴 (가로 스크롤) -->
+    <div class="icon-menu">
+      <button class="im-item"><div class="im-ic">🌴<span class="dot"></span></div><span class="im-lb">썸머볼캉스</span></button>
+      <button class="im-item"><div class="im-ic">⬇️</div><span class="im-lb">임박특가</span></button>
+      <button class="im-item"><div class="im-ic">👥</div><span class="im-lb">조인</span></button>
+      <button class="im-item"><div class="im-ic">🎒</div><span class="im-lb">국내투어</span></button>
+      <button class="im-item promo"><div class="im-ic">루트52</div><span class="im-lb">추천골프장</span></button>
+    </div>
+    <div class="im-scrollbar"></div>
+
+    <div class="date-strip" id="homeDates">
+      <span class="date-month">7월 <span style="font-size:8px">▾</span></span>
+      <!-- 날짜 버튼 = JS 생성 (DATE_ITEMS / buildDateStrips) -->
+    </div>
+
+    <!-- 시간대 탭 -->
+    <div class="time-tabs">
+      <button class="time-tab active" onclick="selTimeTab(this)">전체</button>
+      <button class="time-tab" onclick="selTimeTab(this)">새벽</button>
+      <button class="time-tab" onclick="selTimeTab(this)">오전</button>
+      <button class="time-tab" onclick="selTimeTab(this)">오후</button>
+      <button class="time-tab" onclick="selTimeTab(this)">야간</button>
+    </div>
+
+    <!-- 권역 퀵필터 (가로 스크롤) -->
+    <div class="rgn-quick">
+      <button class="rq-card" onclick="openSearch('home','서울/경기')"><div class="rq-t">가까운 골프장</div><div class="rq-n">521팀</div></button>
+      <button class="rq-card" onclick="openSearch('home','서울/경기')"><div class="rq-t">서울/경기</div><div class="rq-n">3,057팀</div></button>
+      <button class="rq-card" onclick="openSearch('home','강원')"><div class="rq-t">강원</div><div class="rq-n">1,687팀</div></button>
+      <button class="rq-card" onclick="openSearch('home','충청')"><div class="rq-t">충청</div><div class="rq-n">2,195팀</div></button>
+      <button class="rq-card" onclick="openSearch('home','경상')"><div class="rq-t">경상</div><div class="rq-n">1,420팀</div></button>
+      <button class="rq-card" onclick="openSearch('home','전라')"><div class="rq-t">전라</div><div class="rq-n">980팀</div></button>
+      <button class="rq-card" onclick="openSearch('home','제주')"><div class="rq-t">제주</div><div class="rq-n">312팀</div></button>
+    </div>
+
+    <!-- 배너 2종 (오퍼월/광고) -->
+    <div class="ph-banner" style="height:60px">오퍼월</div>
+    <div class="ph-banner" style="height:104px">광고배너</div>
+
+    <!-- 티타임 레이더 사용권 CTA -->
+    <div class="radar-cta" onclick="openRadarIntro()">
+      <div class="ic">🎯</div>
+      <div class="txt">
+        <div class="t1">내 조건에 맞는 티타임, 알아서 찾아드려요</div>
+        <div class="t2">레이더 사용권 1개로 시작하기 ›</div>
+      </div>
+    </div>
+
+    <div class="section" id="homeRecSection"><!-- 추천 영역(No.1 타이틀 + No.2 카드) — 선택 일자 예약 가능 없으면 전체 미노출 -->
+      <div class="sec-head">
+        <!-- 출발지 미설정 유저 대상 유도 툴팁 (타이틀 위 · 위치 핀을 가리킴) -->
+        <div class="sec-tip" id="secTip" onclick="setDeparture('강원/양구')">나의 출발지로 바꿔보세요</div>
+        <div class="title-row">
+          <span class="anno" style="top:1px;left:-16px">1</span>
+          <div class="title-wrap">
+            <span class="title" id="secTitle"><span class="loc-link" onclick="setDeparture('강원/양구')"><span class="loc-pin">📍</span><span class="loc-nm">삼성동</span></span>에서 많이 가는 골프장</span>
+          </div>
+          <div class="more" onclick="openRadar()">모두보기 ›</div>
+        </div>
+      </div>
+
+      <div class="hrail" id="homeRail"></div>
+    </div>
+
+    <!-- 골프투어 위 추가 광고배너 (스펙 No.3) -->
+    <div class="ph-banner" style="height:104px;margin:28px 20px 0;position:relative"><span class="anno" style="top:-10px;left:-8px">3</span>광고배너</div>
+
+    <div class="dummy">
+      <span class="anno" style="top:26px;left:0">4</span>
+      <div class="h">추천 골프투어 패키지</div>
+      <div class="pkg-tabs">
+        <button class="pkg-tab active" onclick="selPkgTab(this)">국내투어<span class="dot"></span></button>
+        <button class="pkg-tab" onclick="selPkgTab(this)">해외투어</button>
+        <div class="pkg-more">모두보기 ›</div>
+      </div>
+      <div class="pkg-rgn">
+        <button class="pkg-rgn-chip on" onclick="selPkgRgn(this)">추천</button>
+        <button class="pkg-rgn-chip" onclick="selPkgRgn(this)">강원권</button>
+        <button class="pkg-rgn-chip" onclick="selPkgRgn(this)">충청권</button>
+        <button class="pkg-rgn-chip" onclick="selPkgRgn(this)">경상권</button>
+        <button class="pkg-rgn-chip" onclick="selPkgRgn(this)">전라권</button>
+        <button class="pkg-rgn-chip" onclick="selPkgRgn(this)">제주권</button>
+      </div>
+      <!-- 가로형 카드(이미지 좌 + 텍스트 우) · 2행 3열 = 총 6개 (좌우 스와이프) -->
+      <div class="drow">
+        <div class="dcol">
+          <div class="dcard">
+            <div class="im"></div>
+            <div class="dtxt">
+              <div class="tt">[장수CC] 36홀 카트비 무료 + 프리미엄 패키지</div>
+              <div class="meta">36홀 · 1박2일</div>
+              <div class="pp">216,000원</div>
+            </div>
+          </div>
+          <div class="dcard">
+            <div class="im ad"></div>
+            <div class="dtxt">
+              <div class="tt">골프채 특가</div>
+              <div class="meta">내 손에 딱 맞는 핏 · <span class="adt">AD</span></div>
+              <div class="pp">216,000원</div>
+            </div>
+          </div>
+        </div>
+        <div class="dcol">
+          <div class="dcard">
+            <div class="im"></div>
+            <div class="dtxt">
+              <div class="tt">[클럽디거창CC] 1박2일 패키지</div>
+              <div class="meta">36홀 · 1박2일</div>
+              <div class="pp">142,000원</div>
+            </div>
+          </div>
+          <div class="dcard">
+            <div class="im"></div>
+            <div class="dtxt">
+              <div class="tt">[사우스링스영암] 2박3일 패키지</div>
+              <div class="meta">54홀 · 2박3일</div>
+              <div class="pp">328,000원</div>
+            </div>
+          </div>
+        </div>
+        <div class="dcol">
+          <div class="dcard">
+            <div class="im"></div>
+            <div class="dtxt">
+              <div class="tt">[세인트포·오크밸리] 1박2일</div>
+              <div class="meta">36홀 · 1박2일</div>
+              <div class="pp">175,000원</div>
+            </div>
+          </div>
+          <div class="dcard">
+            <div class="im"></div>
+            <div class="dtxt">
+              <div class="tt">[블랙스톤 이천] 당일 라운드</div>
+              <div class="meta">18홀 · 당일</div>
+              <div class="pp">98,000원</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 선결제하고 할인받기 영역 = 삭제 예정 (스펙 No.4) -->
+    <div class="removed-area">
+      <span class="anno" style="top:-9px;left:8px">5</span>
+      <span class="ra-txt">선결제하고 할인받기</span>
+      <span class="ra-tag">삭제 예정</span>
+    </div>
+
+    <div class="joinsec">
+      <div class="jh-row"><span class="jh-t">실시간 조인</span><span class="jh-more">모두보기 ›</span></div>
+      <div class="join-row">
+        <div class="jcard">
+          <div class="jc-time">오전 8시대</div>
+          <div class="jc-nm">포천힐스</div>
+          <div class="jc-rg">경기 포천 · <span class="star">★</span> 4.0</div>
+          <div class="jc-pr">가격미정</div>
+          <div class="jc-div"></div>
+          <div class="jc-avatars">
+            <span class="jav" style="background:#8EC9F5">🧑</span>
+            <span class="jav" style="background:#A6D8B0">🧑</span>
+            <span class="jav" style="background:#F5B0A8">🧑</span>
+            <span class="jav plus">+</span>
+          </div>
+        </div>
+        <div class="jcard">
+          <div class="jc-time">오전 8시대</div>
+          <div class="jc-nm">더반</div>
+          <div class="jc-rg">경기 이천 · <span class="star">★</span> 4.4</div>
+          <div class="jc-pr">가격미정</div>
+          <div class="jc-div"></div>
+          <div class="jc-avatars">
+            <span class="jav" style="background:#F5B0A8">🧑</span>
+            <span class="jav" style="background:#8EC9F5">🧑</span>
+            <span class="jav plus">+</span>
+            <span class="jav plus">+</span>
+          </div>
+        </div>
+        <div class="jcard">
+          <div class="jc-time">오전 7시대</div>
+          <div class="jc-nm">인천그랜드</div>
+          <div class="jc-rg">인천 서구 · <span class="star">★</span> 4.2</div>
+          <div class="jc-pr">가격미정</div>
+          <div class="jc-div"></div>
+          <div class="jc-avatars">
+            <span class="jav" style="background:#F5B0A8">🧑</span>
+            <span class="jav plus">+</span>
+            <span class="jav plus">+</span>
+            <span class="jav plus">+</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="eventsec" style="position:relative">
+      <span class="anno" style="top:26px;left:0">6</span>
+      <div class="jh-row"><span class="jh-t">이벤트 참여해볼래?</span><span class="jh-more">모두보기 ›</span></div>
+      <div class="event-row">
+        <div class="ev-card ad"><span class="adbadge">AD</span></div>
+        <div class="ev-card grad"></div>
+      </div>
+    </div>
+
+    <!-- 이벤트 아래 광고배너 (오퍼월 사이즈) -->
+    <div class="ph-banner" style="height:60px;margin:28px 20px 28px">광고배너</div>
+  </div>
+
+  <!-- ===== 티타임 레이더 · 추천 탭 (모두보기 이동 / 참고 파일 구조) ===== -->
+  <div class="rscreen" id="radarScreen">
+    <div class="hdr">
+      <button class="hdr-back" onclick="closeRadar()">←</button>
+      <span class="hdr-title">티타임 레이더</span>
+    </div>
+    <div class="tab-bar" style="position:relative">
+      <span class="anno" style="top:-9px;left:8px">7</span>
+      <button class="tab-btn" onclick="selRadarTab('radar')">레이더</button>
+      <button class="tab-btn active" onclick="selRadarTab('reco')">추천</button>
+    </div>
+
+    <!-- 레이더 탭 = 티타임레이더 소개(생성) 페이지 · 추천 탭과 택1 -->
+    <div class="radar-intro" id="radarIntro">
+      <div class="ri-banner">
+        <svg class="ri-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg>
+        티타임레이더 서비스 소개<span class="ri-arw">›</span>
+      </div>
+      <div class="ri-title">원하는 날짜와 시간만 고르면<br>딱 맞는 티타임을 찾아드려요</div>
+      <div class="ri-sub">일일이 검색하지 말고 티타임레이더를 켜보세요</div>
+      <div class="ri-illust">
+        <svg viewBox="0 0 120 120" fill="none" aria-hidden="true">
+          <circle cx="60" cy="60" r="46" stroke="#3b3239" stroke-width="11" stroke-linecap="round" stroke-dasharray="215 75" transform="rotate(-35 60 60)"/>
+          <circle cx="60" cy="60" r="29" stroke="#3b3239" stroke-width="11" stroke-linecap="round" stroke-dasharray="136 47" transform="rotate(-35 60 60)"/>
+          <circle cx="60" cy="60" r="9" fill="#3b3239"/>
+          <path d="M60 60 L60 11 A49 49 0 0 1 103 55 Z" fill="#41c47f"/>
+        </svg>
+      </div>
+      <div class="ri-cta">티타임레이더 만들기</div>
+    </div>
+
+    <!-- 날짜 선택 영역 (월력/주력) — scroll-body 밖으로 빼서 스크롤해도 상단 고정 -->
+    <div class="date-strip" id="radarDates">
+      <span class="date-month">7월 <span style="font-size:8px">▾</span></span>
+      <!-- 날짜 버튼 = JS 생성 (DATE_ITEMS / buildDateStrips) -->
+    </div>
+    <div class="scroll-body" style="padding-bottom:24px;">
+      <!-- 타이틀 영역 (홈과 동일 구조: 출발지 유도 툴팁 + 📍삼성동 타이틀) · 출발지 배너 제거 -->
+      <div class="sec-head" style="padding:16px 16px 0">
+        <div class="sec-tip" id="radarTip" onclick="setDeparture('강원/양구')">나의 출발지로 바꿔보세요</div>
+        <div class="title-row">
+          <span class="anno" style="top:1px;left:-16px">8</span>
+          <div class="title-wrap">
+            <span class="title"><span class="loc-link" onclick="setDeparture('강원/양구')"><span class="loc-pin">📍</span><span class="loc-nm">삼성동</span></span>에서 많이 가는 골프장</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="pcardList"></div>
+      <!-- 선택 일자에 예약 가능 골프장 없음 → 빈 상태 (렌더 시 pcardList와 택1) -->
+      <div class="rec-empty" id="radarEmpty">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2 1.8 20.5h20.4L12 3.2Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.2" r="1" fill="var(--gray-300)" stroke="none"/></svg>
+        <div class="et">추천 결과가 없습니다.</div>
+        <div class="es">다른 일자를 선택해주세요.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 검색결과 리스트 (전체 목록 보러가기 →) ===== -->
+  <div class="rscreen" id="searchScreen" style="display:none">
+    <!-- 상단: 뒤로 + 권역 칩 -->
+    <div class="sr-head">
+      <button class="hdr-back" onclick="closeSearch()">←</button>
+      <div class="sr-rgns">
+        <button class="rgn-chip on" onclick="selRegion(this)">서울/경기</button>
+        <button class="rgn-chip" onclick="selRegion(this)">강원</button>
+        <button class="rgn-chip" onclick="selRegion(this)">충청</button>
+        <button class="rgn-chip" onclick="selRegion(this)">경상</button>
+        <button class="rgn-chip" onclick="selRegion(this)">전라</button>
+        <button class="rgn-chip" onclick="selRegion(this)">제주</button>
+      </div>
+    </div>
+    <!-- 날짜 -->
+    <div class="date-strip" id="searchDates">
+      <span class="date-month">7월 <span style="font-size:8px">▾</span></span>
+      <!-- 날짜 버튼 = JS 생성 (DATE_ITEMS / buildDateStrips) -->
+    </div>
+    <div class="scroll-body" style="padding-bottom:76px;">
+      <!-- 라운드 퀵필터 (스크롤 시 함께 올라가 숨김) -->
+      <div class="sr-quick">
+        <div class="qf"><span class="qf-ic">🔻</span>임박특가</div>
+        <div class="qf"><span class="qf-ic">👍</span>추천</div>
+        <div class="qf"><span class="qf-ic">🎉</span>특가전</div>
+        <div class="qf"><span class="qf-ic">🎁</span>신규제휴</div>
+        <div class="qf"><span class="qf-ic">⛳</span>9홀</div>
+      </div>
+      <!-- 필터 / 정렬 바 (스크롤 시 함께 올라가 숨김) -->
+      <div class="sr-fbar">
+        <button class="sr-fbtn">☰ 필터<span class="sr-dot"></span></button>
+        <div class="sr-fright"><span class="sr-avail on" onclick="toggleAvail()"><span class="av-ic">◉</span> 예약 가능</span><span class="sr-sort" style="position:relative">↕ 추천순<span class="anno" style="top:-11px;left:-8px">11</span></span></div>
+      </div>
+      <div id="searchList"></div>
+    </div>
+    <!-- 플로팅 필터|정렬 -->
+    <div class="sr-fab">☰ 필터 <span class="sr-fab-bar">|</span> ↕ 정렬</div>
+  </div>
+
+  <!-- ===== 바텀 내비게이션 (홈 화면에서만 노출) ===== -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bn-item active"><span class="bn-ic">🏠</span><span class="bn-lb">홈</span></button>
+    <button class="bn-item"><span class="bn-ic">📅</span><span class="bn-lb">나의 예약</span></button>
+    <button class="bn-item"><span class="bn-ic">👥</span><span class="bn-lb">조인</span></button>
+    <button class="bn-item"><span class="bn-ic">🎁<span class="dot"></span></span><span class="bn-lb">혜택</span></button>
+    <button class="bn-item"><span class="bn-ic">👤</span><span class="bn-lb">MY</span></button>
+  </nav>
+</div>
+
+<div class="spec">
+  <!-- Revision History (LNB에서 진입) — 항목 클릭 시 해당 영역으로 이동 -->
+  <div id="specRevision" style="display:none;">
+  <h2>Revision History</h2>
+  <p class="lead">버전별 변경 이력 · description 항목을 누르면 해당 영역으로 이동합니다</p>
+  <table class="spectbl revtbl">
+    <thead><tr><th class="rv-ver">version</th><th class="rv-date">date</th><th>description</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="rv-ver-c"><span class="cl-ver">v0.9</span></td>
+        <td class="rv-date-c">26.08.06.(목)</td>
+        <td class="rv-desc">
+          <div class="changelog"><ul>
+            <li class="cl-jump" onclick="goChangelog('radar',8)"><span class="cl-loc">레이더 8-3</span><span class="cl-txt"><b>예약 불가 일자 흐림(비활성) 표기 스펙아웃</b> — 대상 유저 수가 적어 <b>차기 개선 과제</b>로 이관 · 빈 상태 노출은 유지</span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',1)"><span class="cl-loc">홈 1-3</span><span class="cl-txt"><b>주력 날짜 흐림 표기</b> 관련 cf. 문구 삭제</span><span class="cl-go">›</span></li>
+            <li class="cl-flat"><span class="cl-loc out">스펙아웃</span><span class="cl-txt"><b>03 검색결과 리스트 &gt; 추천순 정렬 — 이번 차수 제외</b> <span class="m">(화면 목차에서 제거 · <b>로그 적재만 진행</b> · 추후 진행 예정)</span></span><span class="cl-go"></span></li>
+          </ul></div>
+        </td>
+      </tr>
+      <tr>
+        <td class="rv-ver-c"><span class="cl-ver base">v0.8</span></td>
+        <td class="rv-date-c">26.08.05.(수)</td>
+        <td class="rv-desc">
+          <div class="changelog"><ul>
+            <li class="cl-jump" onclick="goChangelog('home',1)"><span class="cl-loc">홈 1·레이더 8</span><span class="cl-txt"><b>출발지 유도 툴팁 문구 확정</b> — “나의 출발지로 바꿔보세요” <span class="m">(문구 미정 해제)</span></span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',2)"><span class="cl-loc">홈 2</span><span class="cl-txt"><b>AD 로직 상세화</b> — 권역 기준=<b>생활권</b> · 미노출 케이스(미등록/잔여없음/1~3순위 중복) · 파트너스 등록 경로 갱신</span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',4)"><span class="cl-loc">홈 4</span><span class="cl-txt">투어 <b>4-1(타이틀 명칭 변경) 삭제</b> · 번호 라벨 정리</span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',4)"><span class="cl-loc">홈 4</span><span class="cl-txt"><b>선결제 광고구좌</b> — 최초 활성 탭 복귀 시 <b>광고 재노출</b> 케이스 추가</span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',1)"><span class="cl-loc">홈 1-2</span><span class="cl-txt"><b>모두보기</b> → 티타임 레이더 추천 탭 <b>활성 상태</b>로 이동 · 최초 이용자도 <b>소개 페이지 스킵</b></span><span class="cl-go">›</span></li>
+          </ul></div>
+        </td>
+      </tr>
+      <tr>
+        <td class="rv-ver-c"><span class="cl-ver base">v0.7</span></td>
+        <td class="rv-date-c">26.07.22.(수)</td>
+        <td class="rv-desc">
+          <div class="changelog"><ul>
+            <li class="cl-jump" onclick="goChangelog('home',2)"><span class="cl-loc">홈 2</span><span class="cl-txt"><b>사업팀 광고구좌(AD) 로직 추가</b> — 권역별 등록·예약 가능 타임 있는 골프장 중 랜덤 노출 · 슬롯 공백 시 기존 추천 골프장 대체 <span style="color:#EA5656;font-weight:700">[개발 협의 필요]</span></span><span class="cl-go">›</span></li>
+          </ul></div>
+        </td>
+      </tr>
+      <tr>
+        <td class="rv-ver-c"><span class="cl-ver base">v0.6</span></td>
+        <td class="rv-date-c">26.07.20.(월)</td>
+        <td class="rv-desc">
+          <div class="changelog"><ul>
+            <li class="cl-jump" onclick="goChangelog('home',1)"><span class="cl-loc">홈 1-1</span><span class="cl-txt"><b>말줄임 케이스 신규</b> — 위치명 글자수 긴 경우 말줄임 표기 <span class="m">(ex. 국토정중앙면)</span> · 출발지 유도 툴팁 문구 변경 <span class="m">(→ “나의 출발지로 바꿔보세요”)</span></span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',4)"><span class="cl-loc">홈 4-1</span><span class="cl-txt">타이틀 명칭 변경에 <b>(문구 미정)</b> 표기 추가</span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',6)"><span class="cl-loc">홈 6-1</span><span class="cl-txt">‘이미지 사이즈 변경 가능성(협의중)’ 케이스 → <b>‘배너 이미지 사이즈 축소 (종횡비 유지)’</b> 정보로 변경</span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('radar',8)"><span class="cl-loc">레이더 8-2</span><span class="cl-txt">출발지 유도 툴팁 문구 변경 <span class="m">(→ “나의 출발지로 바꿔보세요”)</span></span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('search',11)"><span class="cl-loc">검색 11-1</span><span class="cl-txt"><b>노출 개수 명시</b> — 메인·레이더 추천탭 상위 8개 / 검색결과 전체 · 검토 memo(잔여 티타임 영역 사이즈 조정) 제거</span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('radar',9)"><span class="cl-loc">레이더 8·9</span><span class="cl-txt"><b>예약 가능 없음 케이스 신규</b> — 선택 일자에 추천 결과 없으면 ⚠️ “추천 결과가 없습니다 / 다른 일자를 선택해주세요” 빈 상태 · 예약 불가 일자는 날짜 스트립에서 흐리게 표기 <span style="color:#EA5656;font-weight:700">[개발팀 협의 필요]</span></span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',1)"><span class="cl-loc">홈 1-3</span><span class="cl-txt"><b>선택 일자 예약 가능 없음 = 추천 영역 미노출</b> <span class="m">(레이더와 동일 일자)</span></span><span class="cl-go">›</span></li>
+            <li class="cl-jump" onclick="goChangelog('home',2)"><span class="cl-loc">프로토타입</span><span class="cl-txt">출발지 설정 데모 데이터 <b>국토정중앙면(강원)</b>으로 설정 <span class="m">(리스트 8개)</span></span><span class="cl-go">›</span></li>
+          </ul></div>
+        </td>
+      </tr>
+      <tr>
+        <td class="rv-ver-c"><span class="cl-ver base">v0.5</span></td>
+        <td class="rv-date-c">—</td>
+        <td class="rv-desc"><div class="rv-note">이전 버전 이력 — 필요 시 기재</div></td>
+      </tr>
+    </tbody>
+  </table>
+  </div><!-- /specRevision -->
+  <div id="specHome">
+  <h2>홈 · 인기 골프장 추천 영역</h2>
+  <p class="lead">타이틀 · 추천 리스트(카드) 구성</p>
+  <div class="cat-legend">
+    <span><span class="cat c-show">정보</span></span>
+    <span><span class="cat c-logic">로직</span></span>
+    <span><span class="cat c-act">액션</span></span>
+    <span><span class="cat c-case">케이스</span></span>
+  </div>
+  <table class="spectbl">
+    <thead><tr><th class="c-no">No.</th><th class="c-type">type</th><th>description</th><th class="c-memo">memo</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="no">1</td>
+        <td class="type">title</td>
+        <td>
+          <div class="dl"><span class="sn">1-1</span><span class="cat c-show">정보</span><span class="tx"><b>📍삼성동에서 많이 가는 골프장</b></span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-act">액션</span><span class="tx"><b>(📍삼성동)</b> 탭 시 → <span class="lnk">출발지 설정 페이지</span>로 이동</span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b>글자수 긴 경우</b>, <b>말줄임 표기</b> <span class="m">(ex. 국토정중앙면)</span></span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b>출발지 미설정 시</b>, “나의 출발지로 바꿔보세요” <b>툴팁 노출</b></span></div>
+          <div class="dl"><span class="sn">1-2</span><span class="cat c-act">액션</span><span class="tx">[모두보기 ›] 탭 → <b>주력(선택) 일자 물고</b> <span class="lnk">티타임 레이더 &gt; 추천 탭</span> <b>(활성 상태)</b>로 이동<div class="d1"><b>티타임 레이더 최초 이용자(미진입)</b>의 경우, <b>소개 페이지 노출 없이</b> → 바로 <b>추천 탭</b>으로 진입</div></span></div>
+          <div class="dl"><span class="sn">1-3</span><span class="cat c-case">케이스</span><span class="tx"><b>노출할 골프장 리스트가 없으면</b> → <b>추천 영역 전체 미노출</b> <span class="m">(ex. 선택 일자에 예약 가능한 골프장이 없는 경우 · 레이더 예약 불가 일자와 동일)</span></span></div>
+        </td>
+        <td class="memo"><div class="memo-grp"><span class="idea-tag">데모</span><ul class="memo-list"><li>날짜 <b>11·12</b> 선택 시 추천 영역 미노출 <span class="m">(레이더 예약 불가 일자와 동일)</span></li></ul></div></td>
+      </tr>
+      <tr>
+        <td class="no">2</td>
+        <td class="type">card-list</td>
+        <td>
+          <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx"><a href="https://kakaovx.atlassian.net/wiki/spaces/bqTY3Q6vch4D/pages/2250932251" target="_blank">홈화면 신규 유저 추천 — 인기도 랭킹 &amp; 노출 로직 자세히보기 ↗</a><br><a href="https://docs.google.com/spreadsheets/d/1PjZ1E_rq8qrog5fARtAVIRNFpjODC4sC0LInsUfLveU/edit?gid=1403551977#gid=1403551977" target="_blank">홈추천 출발지별 노출 골프장 리스트 (사업팀 구좌 제외) ↗</a><br><a href="https://kakaovx.atlassian.net/wiki/spaces/rvnRVBIlrDCa/pages/2300313607/Untitled+live+doc+2026-08-07" target="_blank">홈화면 룰베이스 추천 — 사업 AD 구좌 운영 가이드 ↗</a></span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx"><b>카드 순서</b> <span class="m">(2행 · 열 단위 상→하)</span><br><span class="ord">1 &nbsp;3 &nbsp;5 &nbsp;…<br>2 &nbsp;4 &nbsp;6 &nbsp;…</span><div class="d2">cf.) <b>4</b> = 사업팀 구좌 등록 시 <b>고정 노출</b></div><div class="d2">선택 일자에 <b>예약 가능한 골프장이 없는 경우 미노출</b> <span class="m">(사업팀 구좌도 동일)</span></div></span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx"><b>사업팀 광고구좌(AD)</b><div class="d1"><b>홈 = 4번 슬롯 1개</b> — 권역 등록 + <b>선택 일자</b> 예약 가능 타임 있는 골프장 중 <b>랜덤 1개</b> <span class="m">(진입마다)</span></div><div class="d1">권역 기준 = <b>생활권</b> · 다른 권역 AD는 미노출</div><div class="d1">AD 미노출 케이스(<b>미등록 / 잔여팀 없음 / 1·2·3순위 중복</b>) → <b>기존 추천 골프장으로 대체</b> <span class="m">(슬롯 공백 방지)</span></div><div class="d2">cf.) <b>[ 파트너스 &gt; 검색관리 &gt; 홈 추천 광고 ]</b> 메뉴 = 골프장 · 노출 생활권<span class="m">(자동 선택 · 체크박스 해제 가능)</span> · 노출기간 · 사용여부</div></span></div>
+          <div class="dl"><span class="sn">2-1</span><span class="cat c-show">정보</span><span class="tx"><b>골프장 카드</b> — 골프장명 / 권역·★별점 <span class="m">(·AD = 자사 슬롯에서만 노출)</span> / <b>환급 뱃지</b> <span class="m">(구장 귀속 · 있는 곳만 · 멤버십 분기 = 가입:환급할인 / 미가입:1만원환급)</span> / <b>하단(금액) 행 = 그린피 최저가~ or 홈페이지 참조</b> <span class="m">(잔여 티타임의 그린피가 모두 홈페이지 참조인 경우)</span></span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b>골프장명 말줄임</b> — 카드 폭 초과 시 <b>… 말줄임(1줄)</b> 처리</span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-act">액션</span><span class="tx">카드 탭 시 → <span class="lnk">골프장 상세 페이지</span>로 이동</span></div>
+        </td>
+        <td class="memo">
+          <div class="devctrl">
+            <span class="devctrl-t">데모 컨트롤</span>
+            <div class="ctrl">
+              <span class="lbl">출발지 권역</span>
+              <span class="depBtns">
+                <button data-region="" class="on" onclick="setDeparture(null)">미설정</button>
+                <button data-region="강원/양구" onclick="setDeparture('강원/양구')">국토정중앙면</button>
+              </span>
+            </div>
+            <div class="ctrl">
+              <span class="lbl">멤버십</span>
+              <span class="memBtns">
+                <button data-member="0" class="on" onclick="setMember(false)">미가입 (1만원환급)</button>
+                <button data-member="1" onclick="setMember(true)">가입 (환급할인)</button>
+              </span>
+            </div>
+            <div class="ctrl">
+              <span class="lbl">사업팀 AD</span>
+              <span class="adBtns">
+                <button data-ad="1" class="on" onclick="setAdRegistered(true)">노출</button>
+                <button data-ad="0" onclick="setAdRegistered(false)">미노출</button>
+              </span>
+            </div>
+          </div>
+          <div class="memo-grp">
+            <ul class="memo-list"><li><b>사업팀 구좌 등록 파트너스 필요</b></li><li><b>AD 미노출</b> = 미등록 / 잔여팀 없음 / 1·2·3순위 중복</li></ul>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="no">3</td>
+        <td class="type">banner</td>
+        <td>
+          <div class="dl"><span class="sn">3-1</span><span class="cat c-show">정보</span><span class="tx"><b>중간 광고 배너</b> — 골프 여행(투어) 영역 <b>위</b>로 이동 <span class="m">(as-is 투어 아래 → to-be 투어 위)</span></span></div>
+        </td>
+        <td class="memo"></td>
+      </tr>
+      <tr>
+        <td class="no">4</td>
+        <td class="type">tour-pkg</td>
+        <td>
+          <div class="dl"><span class="sn">4-1</span><span class="cat c-show">정보</span><span class="tx"><b>이미지 사이즈 축소 및 배치 변경</b> <span class="m">(선결제 구좌 사이즈 고려)</span><div class="d1">노출되는 카드 갯수 <b>6개</b></div></span></div>
+          <div class="dl"><span class="sn">4-2</span><span class="cat c-show">정보</span><span class="tx"><b>선결제 구좌 AD 위치</b> — 리스트 <b>2번째 카드</b>에 노출 <span class="m">(다크 썸네일 · 메타 끝에 “· AD” 표기)</span></span></div>
+          <div class="dl"><span class="sn"></span><span class="cat c-logic">cf.)</span><span class="tx"><b>선결제 광고구좌 노출</b> — <b>최초 활성화된 탭</b>의 <b>2번째 상품</b>에 노출
+            <div class="d1">최초 활성화 탭 = <b>국내투어</b> → 국내투어 탭 2번째 상품에 광고 노출</div>
+            <div class="d2">다른 (비활성) 탭으로 전환 시 → <b>광고 미노출</b></div>
+            <div class="d2">이후 다시 <b>국내투어</b> 탭으로 전환 시 → <b>광고 재노출</b> <span class="m">(최초 활성 탭 복귀 = 노출)</span></div>
+          </span></div>
+        </td>
+        <td class="memo"></td>
+      </tr>
+      <tr>
+        <td class="no">5</td>
+        <td class="type">삭제</td>
+        <td>
+          <div class="dl"><span class="sn">5-1</span><span class="cat c-case">케이스</span><span class="tx"><b>선결제하고 할인받기</b> 영역 <b>삭제</b> <span class="m">(골프 여행 ↔ 실시간 조인 사이 기존 프로모션 구좌 제거)</span></span></div>
+        </td>
+        <td class="memo">
+          <div class="memo-grp">
+            <ul class="memo-list"><li>기존 <b>선결제 광고배너</b> 위치 → <b>골프 투어 영역</b>으로 이동</li><li>기존 <b>골프장 광고</b> 위치 → <b>추천 영역</b>으로 이동</li></ul>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="no">6</td>
+        <td class="type">event</td>
+        <td>
+          <div class="dl"><span class="sn">6-1</span><span class="cat c-show">정보</span><span class="tx"><b>배너 이미지 사이즈 축소</b> <span class="m">(이미지 종횡비 유지)</span></span></div>
+        </td>
+        <td class="memo"></td>
+      </tr>
+    </tbody>
+  </table>
+  </div><!-- /specHome -->
+
+  <div id="specRadar" style="display:none;">
+    <h2>티타임 레이더 &gt; 추천 탭</h2>
+    <div class="cat-legend">
+      <span><span class="cat c-show">정보</span></span>
+      <span><span class="cat c-logic">로직</span></span>
+      <span><span class="cat c-act">액션</span></span>
+      <span><span class="cat c-case">케이스</span></span>
+    </div>
+    <table class="spectbl">
+      <thead><tr><th class="c-no">No.</th><th class="c-type">type</th><th>description</th><th class="c-memo">memo</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="no">7</td>
+          <td class="type">tab-bar</td>
+          <td>
+            <div class="dl"><span class="sn">7-1</span><span class="cat c-show">정보</span><span class="tx"><b>추천 탭 신규 추가</b> — 탭 구성 = <b>레이더 / 추천</b></span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-logic">cf.)</span><span class="tx"><b>티타임 레이더 최초 이용자(미진입)도</b> <b>소개 페이지 스킵</b> → 바로 <b>추천 탭</b>으로 진입 <span class="m">(소개 페이지 미노출)</span></span></div>
+          </td>
+          <td class="memo"></td>
+        </tr>
+        <tr>
+          <td class="no">8</td>
+          <td class="type">상단 영역</td>
+          <td>
+            <div class="dl"><span class="sn">8-1</span><span class="cat c-show">정보</span><span class="tx"><b>📍삼성동에서 많이 가는 골프장</b> <span class="m">(탭 시 출발지 설정 · 홈과 동일)</span></span></div>
+            <div class="dl"><span class="sn">8-2</span><span class="cat c-show">정보</span><span class="tx"><b>출발지 설정 유도 툴팁</b><br>출발지 미설정 시, “나의 출발지로 바꿔보세요” <span class="m">(타이틀 위 · 아래쪽 꼬리가 위치[📍삼성동]을 가리킴)</span></span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b>출발지 미설정 시에만</b> 노출 / <b>설정 시</b> 미노출</span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-act">액션</span><span class="tx">툴팁 또는 타이틀 내 <b>[📍삼성동]</b> 탭 → <span class="lnk">출발지 설정 페이지</span>로 이동</span></div>
+            <div class="dl"><span class="sn">8-3</span><span class="cat c-case">케이스</span><span class="tx"><b>날짜 선택 영역</b> — <b>예약 가능한 골프장이 없는 일자</b> <b>선택 시</b> 추천 결과 없음(빈 상태) 노출 <span class="m">(No.9 참조)</span><div class="d2">cf.) 예약 불가 일자 <b>사전 비활성(흐림) 표기 = 차기 개선 과제</b> — 대상 유저 수가 적어 이번 스펙 제외</div></span></div>
+          </td>
+          <td class="memo">
+            <div class="devctrl">
+              <span class="devctrl-t">데모 컨트롤</span>
+              <div class="ctrl">
+                <span class="lbl">출발지 권역</span>
+                <span class="depBtns">
+                  <button data-region="" class="on" onclick="setDeparture(null)">미설정</button>
+                  <button data-region="강원/양구" onclick="setDeparture('강원/양구')">국토정중앙면</button>
+                </span>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="no">9</td>
+          <td class="type">cc-list</td>
+          <td>
+            <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx"><b>출발지 설정 권역 기준</b>으로 리스트 노출</span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx"><b>AD(사업팀 구좌) 미노출</b> — 해당 골프장은 <b>목록에서 제외</b> <span class="m">(홈 추천 영역과 달리 추천 탭에는 AD 없음)</span></span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx"><b>멤버십 특가 뱃지 노출 조건</b> — 아래 <b>2가지 모두 충족</b> 시에만 노출<div class="d1">① 유저가 <b>멤버십 가입</b> 상태</div><div class="d1">② 해당 골프장에 <b>멤버십 특가 상품 보유</b></div></span></div>
+            <div class="dl"><span class="sn">9-1</span><span class="cat c-show">정보</span><span class="tx"><b>골프장 카드</b> — 골프장명 / 권역·거리(km)·별점 / <b>관심(❤️)</b> / <b>멤버십 특가</b> <span class="m">(환급 뱃지 앞)</span> · <b>구장 귀속 환급 뱃지</b> <span class="m">(해당있는 경우만 · 멤버십 분기 = 가입:환급할인 / 미가입:1만원환급)</span> / 그린피(최저가)~·잔여팀</span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-act">액션</span><span class="tx">골프장 카드 탭 시 → <span class="lnk">골프장 상세 페이지</span>로 이동</span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-act">액션</span><span class="tx">관심 미지정에서 [관심] 탭 → <span class="m">“관심 골프장 목록에 추가되었습니다!”</span> toast / 관심 지정에서 [관심] 탭 → <span class="m">“관심 골프장 목록에서 제거되었습니다!”</span> toast</span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b>선택 일자에 예약 가능한 골프장이 없으면</b> → ⚠️ <b>“추천 결과가 없습니다. / 다른 일자를 선택해주세요.”</b> 빈 상태 노출 <span class="m">(카드 리스트 대체)</span></span></div>
+          </td>
+          <td class="memo">
+            <div class="devctrl">
+              <span class="devctrl-t">데모 컨트롤</span>
+              <div class="ctrl">
+                <span class="lbl">멤버십</span>
+                <span class="memBtns">
+                  <button data-member="0" class="on" onclick="setMember(false)">미가입 (1만원환급)</button>
+                  <button data-member="1" onclick="setMember(true)">가입 (환급할인)</button>
+                </span>
+              </div>
+              <div class="ctrl">
+                <span class="lbl">추천 결과</span>
+                <span class="emptyBtns">
+                  <button data-empty="0" class="on" onclick="setRadarEmpty(false)">있음</button>
+                  <button data-empty="1" onclick="setRadarEmpty(true)">없음</button>
+                </span>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td class="no">10</td>
+          <td class="type">teetime-list</td>
+          <td>
+            <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx">골프장 카드의 <b>[잔여 N팀 ∨]</b> 폴딩 버튼 탭 시 <b>해당 카드 하위에 노출</b> <span class="m">(디폴트 = 닫힘)</span></span></div>
+            <div class="dl"><span class="sn">10-1</span><span class="cat c-show">정보</span><span class="tx"><b>티타임 카드</b> — 티타임 시간 / 환급할인 / 선결제 / 임박특가 / 티타임 그린피 <span class="m">(환급할인·선결제·↓임박특가 = 해당있는 경우만 노출)</span></span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-act">액션</span><span class="tx">티타임 카드 탭 시 → <span class="lnk">예약/결제하기 페이지</span>로 이동</span></div>
+          </td>
+          <td class="memo"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="specSearch" style="display:none;">
+    <h2>검색결과 리스트</h2>
+    <div class="cat-legend">
+      <span><span class="cat c-show">정보</span></span>
+      <span><span class="cat c-logic">로직</span></span>
+      <span><span class="cat c-act">액션</span></span>
+      <span><span class="cat c-case">케이스</span></span>
+    </div>
+    <table class="spectbl">
+      <thead><tr><th class="c-no">No.</th><th class="c-type">type</th><th>description</th><th class="c-memo">memo</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="no">11</td>
+          <td class="type">search-list</td>
+          <td>
+            <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b style="color:#EA5656">이번 차수 = 로그 적재만 진행</b> — <b>추천순 정렬 로직 변경은 스펙아웃</b> <span class="m">(화면 목차 제외 · 추후 진행)</span></span></div>
+            <div class="dl"><span class="sn">11-1</span><span class="cat c-logic">로직</span><span class="tx"><b>추천순 정렬 로직 변경</b> <span class="m">(추후 진행)</span>
+              <div class="d2">상세 로직 = <a href="https://docs.google.com/document/d/1fcPPIdypexmYoi_Zz33hcpqdHc3J8i7ZZVuYqYEsEQI/edit?tab=t.0" target="_blank" class="lnk">홈추천 A (콜드스타트) 문서</a> 참고</div>
+              <div class="d2">메인/티타임레이더 추천탭 = <b>상위 8개만</b> 노출 · 검색결과 리스트 = <b>전체 노출</b></div>
+            </span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b>① 상단 권역 1개 선택</b> — AD 영역 <b>최대 5개</b> 노출 + 하위 골프장 리스트
+              <div class="d1"><b>AS-IS</b> · <b>가격순</b> 소팅</div>
+              <div class="d1"><b>TO-BE</b> · 신규 추천 로직 <b>높은 스코어순</b> 소팅</div>
+            </span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx"><b>② 상단 권역 2개 이상(다중) 선택</b> — <b>AD 영역 미노출</b> · 하위 골프장 리스트만 <span class="m">(스코어순)</span></span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-logic">로직</span><span class="tx">cf.) 스코어 동점 → <b>평점 높은 곳</b> / 평점도 동점 → <b>가까운 곳</b> 우선 노출</span></div>
+            <div class="dl"><span class="sn"></span><span class="cat c-case">케이스</span><span class="tx">cf.) <b>추천순 외 다른 정렬</b>에서는 AD 영역 <b>1개만</b> 노출 <span class="m">(상용과 동일)</span></span></div>
+          </td>
+          <td class="memo"><div class="memo-grp"><span class="idea-tag">QA</span><ul class="memo-list"><li><b>생활권별 추천 리스트</b>를 사전 추출해 <b>케이스별 검증</b> <span class="m">(스코어 산출식은 홈추천 A 문서 기준)</span></li></ul></div>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+</main>
+</div>
+
+<script>
+/* 서울/경기 재예약 통과 골프장 TOP 20 (ranked)
+   nm/star = 실제 · region/price/left/ctx = 더미 (ctx = 초록 추천이유 문구) */
+const LIST = [
+  // tags = 구장 귀속 뱃지(있는 곳만) — 환급할인 / 조인모집가능 / 동시오픈. 홈·레이더 공통 데이터
+  {nm:'에덴블루',    region:'경기 광주', km:32, star:'3.97', price:'158,000원~', left:9,  ctx:'재예약 TOP3', tags:['조인모집가능','동시오픈']},
+  {nm:'뉴서울',      region:'경기 광주', km:38, star:'4.35', price:'175,000원~', left:6,  ctx:'재예약 TOP1'},
+  {nm:'윈체스트',    region:'경기 안성', km:55, star:'4.14', price:'149,000원~', left:12, ctx:'2주 전 방문', tags:['환급할인']},
+  {nm:'남서울',      region:'경기 성남', km:22, star:'4.33', price:'210,000원~', left:3,  ctx:'세라지오 단골들의 선택', tags:['조인모집가능']},
+  {nm:'로제비앙',    region:'경기 안성', km:58, star:'4.46', price:'165,000원~', left:7,  ctx:'환급할인', tags:['환급할인','조인모집가능','동시오픈'], deal:true},  // AD 멤버십 특가(간헐)
+  {nm:'세현',        region:'경기 여주', km:61, star:'4.19', price:'152,000원~', left:5,  ctx:'환급할인', tags:['환급할인']},
+  {nm:'더반',        region:'경기 이천', km:48, star:'4.36', price:'189,000원~', left:4,  ctx:'7월 신규 제휴', ad:true, tags:['조인모집가능','동시오픈']},
+  {nm:'금강컨트리클럽',region:'경기 여주', km:65, star:'4.70', price:'198,000원~', left:0,  ctx:'멤버십 특가'},
+  {nm:'빅토리아',    region:'경기 광주', km:41, star:'4.47', price:'172,000원~', left:2,  ctx:'14일 전 클릭', tags:['동시오픈']},
+  {nm:'루트52',      region:'경기 이천', km:52, star:'4.67', price:'205,000원~', left:6,  ctx:'재예약 TOP2', tags:['환급할인','조인모집가능','동시오픈']},
+  {nm:'포레스트힐',  region:'경기 포천', km:70, star:'4.13', price:'138,000원~', left:11, ctx:''},
+  {nm:'캐슬파인',    region:'경기 가평', km:59, star:'4.05', price:'225,000원~', left:3,  ctx:'', tags:['환급할인','조인모집가능'], deal:true},  // AD 멤버십 특가(간헐)
+  {nm:'서서울',      region:'경기 안산', km:36, star:'4.39', price:'168,000원~', left:7,  ctx:'재예약 TOP1', tags:['조인모집가능','동시오픈']},
+  {nm:'기흥',        region:'경기 용인', km:29, star:'4.47', price:'195,000원~', left:5,  ctx:''},
+  {nm:'해솔리아',    region:'경기 화성', km:44, star:'3.91', price:'142,000원~', left:10, ctx:'2주 전 방문', tags:['환급할인']},
+  {nm:'태광',        region:'경기 광주', km:33, star:'4.32', price:'180,000원~', left:4,  ctx:'쿠폰 제공', tags:['조인모집가능','동시오픈']},
+  {nm:'인서울27',    region:'경기 광주', km:31, star:'4.28', price:'176,000원~', left:6,  ctx:'멤버십 특가', tags:['환급할인','동시오픈']},
+  {nm:'라싸컨트리클럽 마운틴·밸리코스', region:'경기 이천', km:50, star:'4.40', price:'188,000원~', left:2,  ctx:''},  // 긴 골프장명 = 말줄임(…) 데모
+  {nm:'인천그랜드',  region:'인천 서구', km:47, star:'4.17', price:'129,000원~', left:9,  ctx:'쿠폰 제공', tags:['환급할인','조인모집가능']},
+  {nm:'한성',        region:'경기 화성', km:53, star:'4.17', price:'155,000원~', left:8,  ctx:'', ext:true},  // ext=가격 미제공(홈페이지 참조)
+];
+const HOME_COUNT = 10; // 홈 노출 개수 (2행 × 5열)
+const SELF = ['더반'];                 // 자사 (·AD는 자사 슬롯에서만)
+const NEW_PARTNER = ['로제비앙','인서울27']; // 신규 제휴 (보장 슬롯)
+/* 프로토타입 데모 리스트 (홈·레이더) — 출발지 미설정=삼성동 기준 / 설정=국토정중앙면 기준 · 고정 순서
+   4번째 = 사업팀(자사) 구좌 고정 노출(·AD) · ext=그린피 미제공(홈페이지 참조) */
+const LIST_SAMSUNG = [
+  {nm:'H1 클럽',              region:'경기 여주', km:62, star:'4.21', price:'178,000원~', left:6, tags:['환급할인']},
+  {nm:'더반',                 region:'경기 이천', km:48, star:'4.36', price:'189,000원~', left:4, tags:['동시오픈'], deal:true},
+  {nm:'금강컨트리클럽',        region:'경기 여주', km:65, star:'4.70', price:'198,000원~', left:5, tags:['동시오픈']},
+  {nm:'뉴서울',               region:'경기 광주', km:28, star:'4.19', price:'175,000원~', left:6, tags:['환급할인']},
+  {nm:'더헤븐(구 아일랜드)',   region:'경기 용인', km:35, star:'4.08', price:'165,000원~', left:3, tags:[]},
+  {nm:'서서울',               region:'경기 안산', km:36, star:'4.39', price:'168,000원~', left:7, tags:['동시오픈'], deal:true},
+  {nm:'벨라45',               region:'경기 광주', km:33, star:'4.12', price:'158,000원~', left:9, tags:['환급할인']},
+  {nm:'더시에나서울(구 중부)', region:'경기 이천', km:45, star:'4.02', price:'172,000원~', left:2, tags:[], ext:true},
+];
+const LIST_GANGWON = [
+  {nm:'알펜시아700',        region:'강원 영서', km:135, star:'4.28', price:'175,000원~', left:6, tags:['환급할인']},
+  {nm:'동강시스타컨트리클럽',region:'강원 영서', km:158, star:'4.12', price:'132,000원~', left:4, tags:['동시오픈'], deal:true},
+  {nm:'영랑호',            region:'강원 영동', km:172, star:'4.35', price:'148,000원~', left:5, tags:[]},
+  {nm:'플라자설악',        region:'강원 영동', km:178, star:'4.19', price:'155,000원~', left:7, tags:['동시오픈']},
+  {nm:'샌드파인',          region:'강원 영동', km:180, star:'4.08', price:'162,000원~', left:3, tags:['환급할인']},
+  {nm:'파크밸리',          region:'강원 영서', km:118, star:'4.22', price:'145,000원~', left:8, tags:['동시오픈'], deal:true},
+  {nm:'벨라45',            region:'강원 영서', km:95,  star:'4.12', price:'138,000원~', left:9, tags:['환급할인']},
+  {nm:'남한강에스파크',     region:'강원 영서', km:88,  star:'4.02', price:'129,000원~', left:3, tags:[], ext:true},
+];
+const RADAR_FAV = ['서서울','금강컨트리클럽','영랑호','파크밸리']; // 관심 지정(♥) 상태로 진입하는 데모 구장
+const ANCHOR_GAP = 0.10;               // 1위-2위 격차 이 이상이면 앵커 고정
+
+let departure = false;
+let depRegion = null; // 출발지 권역(null=미설정)
+const DEP_LABELS = {'강원/양구':'국토정중앙면','서울/경기':'삼성동 · 서울/경기','강원':'춘천 · 강원','충청':'청주 · 충청','경상':'대구 · 경상','전라':'전주 · 전라','제주':'제주시 · 제주'};
+let day = 0; // 날짜 시드(다시섞기 = 다음날)
+let member = false; // 멤버십 가입 여부(false=미가입) — 환급 뱃지 문구 분기
+let radarEmpty = false; // 레이더 추천 탭 — 선택 일자에 예약 가능 골프장 없음(데모 토글)
+let adRegistered = true; // 사업팀 AD 등록 여부(데모) — 미등록 시 4번 슬롯 = 기존 추천 골프장
+function refundBadge(){ return member ? '환급할인' : '1만원환급'; }  // 가입=환급할인 / 미가입=1만원환급
+let availOnly = true; // 검색 [예약 가능] 필터(true=매진 제외) — 레이더 추천 더보기 진입 시 ON
+function syncAvailUI(){ const el=document.querySelector('#searchScreen .sr-avail'); if(!el) return; el.classList.toggle('on', availOnly); const ic=el.querySelector('.av-ic'); if(ic) ic.textContent = availOnly ? '◉' : '◎'; }
+function toggleAvail(){ availOnly = !availOnly; syncAvailUI(); renderSearchList(); }  // 해제 시 매진(잔여없어요) 노출
+
+function shuffle(a){
+  a = a.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function anno(n){ return n ? `<span class="anno" style="top:7px;right:7px">${n}</span>` : ''; }
+
+/* ── 인기도 점수 & 시드 로테이션 ──────────────────────────────
+   score = 인기도 점수(프로토타입은 평점에서 근사) → 정렬·가중 샘플 기준
+   같은 day·같은 권역 = 동일 리스트 · day++ 하면 다음날 로테이션 */
+function scoreOf(g){ return Math.max(0, Math.min(1, (parseFloat(g.star)-3.5)/1.5)); }
+function hashSeed(str){ let h=2166136261; str=String(str); for(let i=0;i<str.length;i++){ h=Math.imul(h^str.charCodeAt(i),16777619); } return h>>>0; }
+function seededRng(seed){ let s=(seed>>>0)||1; return ()=>{ s=(Math.imul(s,1103515245)+12345)&0x7fffffff; return s/0x7fffffff; }; }
+
+/* 🔒앵커 + 🔄점수 가중 로테이션 + 🎯보장 슬롯. count개 골프장 반환 */
+function buildHomeList(count, selfPos, exSoldout){
+  // 프로토타입 데모 — 출발지 미설정=삼성동 / 설정=국토정중앙면 고정 리스트 (4번째 = 사업팀 구좌 = ·AD)
+  const src = departure ? LIST_GANGWON : LIST_SAMSUNG;
+  let out = src.map((g,i)=>({...g, score:scoreOf(g), baseRank:i+1, slot: (i===3 && adRegistered) ? 'self' : 'rotation'}));  // 4번 = 사업팀 AD(등록 시) / 미등록 시 일반 카드
+  if(exSoldout) out = out.filter(g=>g.left!==0);
+  return out;
+}
+function cardHTML(g, badge){
+  // 🎯보장(자사) 슬롯 = 오픈스펙 아웃 → AD(추후) 회색 표기(권역·별점과 동일 굵기)
+  const ad = g.slot==='self' ? ' · <span class="adx">AD</span>' : '';
+  // 환급 뱃지(구장 귀속) — 있는 카드만 · 문구는 멤버십 분기(가입=환급할인 / 미가입=1만원환급)
+  const hasRefund = (g.tags||[]).includes('환급할인');
+  const tagsHtml = hasRefund ? `<div class="tags"><span class="tag refund">${refundBadge()}</span></div>` : '';
+  // 하단(금액) 행 — 홈은 잔여 N팀 미노출. 2상태: ①그린피 최저가~ / ②홈페이지 참조(외부예약) · 매진 구장은 리스트에서 제외
+  const prowHtml = g.ext
+    ? `<div class="prow"><span class="pr ref">홈페이지 참조</span></div>`
+    : `<div class="prow"><span class="pr">${g.price}</span></div>`;
+  return `<div class="gcard">
+    ${anno(badge)}
+    <div class="nm">${g.nm}</div>
+    <div class="rg">${g.region} · <span class="star">★</span> ${g.star}${ad}</div>
+    ${tagsHtml}
+    ${prowHtml}
+  </div>`;
+}
+/* 출발지 미설정 시 첫 카드로 노출되는 설정 유도 CTA */
+function ctaCardHTML(badge){
+  return `<div class="gcard cta" onclick="setDeparture('강원/양구')">
+    ${anno(badge)}
+    <div class="cta-loc"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>서울/경기 추천</div>
+    <div class="msg">출발지 설정하고<br>더 정교한 추천 받기</div>
+    <div class="go">출발지 설정하기 ›</div>
+  </div>`;
+}
+/* 홈: 앵커+로테이션+보장 · 2행씩 묶어 열 생성(좌우 스와이프) · 미설정이면 첫 카드 = CTA
+   마커: ② CTA/첫 카드 */
+function renderHome(){
+  // 출발지 CTA 카드 제거 — 출발지 설정 유도는 타이틀 위 툴팁으로 대체
+  const items = buildHomeList(HOME_COUNT, 3, true).map((g,i)=>cardHTML(g, i===0?2:null));   // 자사=카드4(2열 하단) 고정 · 매진 구장 제외
+  let html = '';
+  for(let c=0; c<items.length; c+=2){
+    html += `<div class="col2">${items.slice(c,c+2).join('')}</div>`;
+  }
+  const rail = document.getElementById('homeRail');
+  rail.innerHTML = html;
+  rail.scrollTo({left:0});
+  // 선택 일자에 예약 가능한 골프장이 없으면 추천 영역(No.1 타이틀+No.2 카드) 전체 미노출 (스펙 1-3)
+  const sec = document.getElementById('homeRecSection');
+  if(sec) sec.style.display = isUnavailDate(currentDate()) ? 'none' : '';
+}
+// 현재 선택 일자(공유 상태) — 홈 날짜 스트립 기준
+function currentDate(){
+  const a = document.querySelector('#homeDates .date-item.active') || document.querySelector('.date-item.active');
+  return a ? a.querySelector('.date-num').textContent.trim() : String(ACTIVE_DATE);
+}
+
+function render(){
+  document.querySelectorAll('.loc-nm').forEach(e=>e.textContent = departure ? '국토정중앙면' : '삼성동');  // 타이틀 위치명
+  const loc = document.getElementById('loc');
+  loc.className = departure ? 'loc' : 'loc unset';   // 📍 아이콘 상태만(설정=진하게 / 미설정=연하게)
+  // 출발지 유도 툴팁(홈·레이더) = 미설정 시에만 노출
+  ['secTip','radarTip'].forEach(id=>{ const t=document.getElementById(id); if(t) t.style.display = departure ? 'none' : 'inline-block'; });
+  document.querySelectorAll('.depBtns button').forEach(b=>b.classList.toggle('on', b.dataset.region === (depRegion||'')));
+  document.querySelectorAll('.memBtns button').forEach(b=>b.classList.toggle('on', (b.dataset.member==='1') === member));
+  document.querySelectorAll('.adBtns button').forEach(b=>b.classList.toggle('on', (b.dataset.ad==='1') === adRegistered));
+  renderHome();
+}
+
+// 홈 날짜 스트립(주력)의 sticky top을 고정 헤더 높이에 맞춤
+function syncHomeStickyTop(){
+  const sc = document.getElementById('homeScreen');
+  const header = sc && sc.querySelector('.home-header');
+  const dates = sc && document.getElementById('homeDates');
+  if(header && dates) dates.style.top = header.offsetHeight + 'px';
+}
+// 홈 스크롤을 1번(이런 골프장은 어때요?) 섹션이 고정 헤더+날짜(주력) 아래 보이는 위치로 이동
+function scrollHomeToSection(smooth){
+  const sc = document.getElementById('homeScreen');
+  const sec = sc && sc.querySelector('.section');
+  const header = sc && sc.querySelector('.home-header');
+  const dates = sc && document.getElementById('homeDates');
+  if(!sc || !sec) return;
+  const stick = (header ? header.offsetHeight : 0) + (dates ? dates.offsetHeight : 0);
+  const y = Math.max(0, sec.offsetTop - stick - 20);
+  sc.scrollTo({top:y, behavior: smooth ? 'smooth' : 'auto'});
+}
+function setDeparture(region){
+  // 데모 컨트롤 전환 시 스크롤 위치 유지 — 툴팁 노출/숨김에 따른 높이 변화까지 보정해 덜컹임 방지
+  const sc = document.getElementById('homeScreen');
+  const rail = document.getElementById('homeRail');
+  const rsb = document.querySelector('#radarScreen .scroll-body');
+  const pcl = document.getElementById('pcardList');
+  const y = sc ? sc.scrollTop : 0, x = rail ? rail.scrollLeft : 0, ry = rsb ? rsb.scrollTop : 0;
+  const railTop = rail ? rail.offsetTop : 0, pclTop = pcl ? pcl.offsetTop : 0;
+
+  depRegion = region; departure = region!==null;
+  render(); renderRadarCards();   // 권역 변경 → 홈·레이더 로테이션 갱신
+
+  if(sc && rail) sc.scrollTop = Math.max(0, y + (rail.offsetTop - railTop));   // 홈: 카드 레일 기준 보정
+  if(rail) rail.scrollLeft = x;                                                // 홈: 좌우 스와이프 위치 유지
+  if(rsb && pcl) rsb.scrollTop = Math.max(0, ry + (pcl.offsetTop - pclTop));   // 레이더: 카드 리스트 기준 보정
+}
+function reshuffleHome(){ day++; renderHome(); renderRadarCards(); } // 홈·레이더 동일 로테이션 갱신
+function setMember(v){ member = v; render(); renderRadarCards(); } // 멤버십 분기 → 홈·레이더 환급 뱃지 문구 갱신
+function setAdRegistered(v){ adRegistered = v; render(); } // 사업팀 AD 등록 여부 데모 — 미등록 시 4번 슬롯 = 일반 추천 골프장
+function setRadarEmpty(v){ // 레이더 추천 탭 — 예약 가능 없음(빈 상태) 데모 토글 → 해당 일자로 이동
+  radarEmpty = v;
+  const target = v ? String(RADAR_UNAVAIL[0]) : String(ACTIVE_DATE);   // 없음=예약 불가 일자(15) / 있음=기본 일자(9)
+  setGlobalDate(target); scrollRadarDateIntoView(target);
+  renderRadarCards(); renderHome(); syncEmptyBtns();
+}
+
+/* ===== 날짜 스트립 데이터 (홈·레이더·검색 공통 — 여기만 고치면 3화면 반영) ===== */
+const DATE_ITEMS = [
+  {w:'월',n:6},{w:'화',n:7},{w:'수',n:8},{w:'목',n:9},{w:'금',n:10},
+  {w:'토',n:11,c:'sat'},{w:'일',n:12,c:'sun'},{w:'월',n:13},{w:'화',n:14},{w:'수',n:15},
+  {w:'목',n:16},{w:'금',n:17},{w:'토',n:18,c:'sat'},{w:'일',n:19,c:'sun'},{w:'월',n:20}
+];
+const ACTIVE_DATE = 9;   // 기본 선택 일자
+const RADAR_UNAVAIL = [11,12];   // 레이더 데모 — 예약 가능 골프장 없는 일자(선택 시 빈 상태) · 흐림 표기는 차기 과제
+function isUnavailDate(num){ return RADAR_UNAVAIL.includes(parseInt(num,10)); }
+function buildDateStrips(){
+  const html = DATE_ITEMS.map(it=>{
+    const c = it.c ? ' '+it.c : '';
+    return `<button class="date-item${it.n===ACTIVE_DATE?' active':''}" onclick="selectDate(this)"><span class="date-day${c}">${it.w}</span><span class="date-num${c}">${it.n}</span></button>`;
+  }).join('');
+  ['homeDates','radarDates','searchDates'].forEach(id=>{
+    const strip = document.getElementById(id);
+    if(strip) strip.insertAdjacentHTML('beforeend', html);   // 월 라벨 뒤에 날짜 버튼 주입
+  });
+}
+
+// 레이더 날짜 스트립에서 선택 일자를 보이게 스크롤
+function scrollRadarDateIntoView(num){
+  const strip = document.getElementById('radarDates');
+  if(!strip) return;
+  const it = [...strip.querySelectorAll('.date-item')].find(b=>b.querySelector('.date-num').textContent.trim()===String(num));
+  if(it) strip.scrollTo({left: Math.max(0, it.offsetLeft - 120), behavior:'smooth'});
+}
+function syncEmptyBtns(){   // 데모 컨트롤 추천 결과 [있음/없음] on 상태 동기화
+  document.querySelectorAll('.emptyBtns button').forEach(b=>b.classList.toggle('on', (b.dataset.empty==='1') === radarEmpty));
+}
+// 홈·티타임레이더·검색결과 3개 화면 날짜를 하나의 공유 상태로 동기화
+function setGlobalDate(num){
+  ['homeDates','radarDates','searchDates'].forEach(id=>{
+    const strip = document.getElementById(id);
+    if(!strip) return;
+    const items = [...strip.querySelectorAll('.date-item')];
+    const match = items.find(it=>it.querySelector('.date-num').textContent.trim() === num);
+    if(match){ items.forEach(it=>it.classList.remove('active')); match.classList.add('active'); }  // 해당 날짜 있는 스트립만 갱신
+  });
+}
+function selectDate(el){
+  const num = el.querySelector('.date-num').textContent.trim();
+  setGlobalDate(num);   // 클릭한 날짜를 3개 화면 모두에 반영
+  radarEmpty = isUnavailDate(num);   // 예약 불가 일자 선택 → 레이더 빈 상태 · 홈 추천 영역 미노출
+  renderRadarCards(); renderHome(); syncEmptyBtns();
+}
+function selRegion(el){
+  el.classList.toggle('on');                                                   // 다중 선택(토글)
+  const chips = el.parentNode.querySelectorAll('.rgn-chip');
+  if(![...chips].some(c=>c.classList.contains('on'))) el.classList.add('on');   // 최소 1개 유지
+  renderSearchList();                                                          // 전체 권역 여부 → AD 노출 갱신
+}
+function selTimeTab(el){
+  el.parentNode.querySelectorAll('.time-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function selPkgTab(el){
+  el.parentNode.querySelectorAll('.pkg-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function selPkgRgn(el){
+  el.parentNode.querySelectorAll('.pkg-rgn-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+}
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast'); if(!t) return;
+  t.textContent = msg; t.classList.add('show');
+  if(toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function toggleHeart(b){   // ♥ 색만 토글 + 관심 추가/제거 toast (7-3 액션)
+  const on = b.classList.toggle('on');
+  showToast(on ? '관심 골프장 목록에 추가되었습니다!' : '관심 골프장 목록에서 제거되었습니다!');
+}
+function toggleFold(btn){
+  const card = btn.closest('.pcard');
+  const collapsed = card.classList.toggle('collapsed');
+  const arw = btn.querySelector('.arw');
+  if(arw) arw.textContent = collapsed ? '∨' : '∧';
+}
+
+/* 3개 화면(home/radar/search) 토글 + 스펙 패널 동기화 */
+function showScreen(which){
+  const set=(id,disp)=>{ const e=document.getElementById(id); if(e) e.style.display = disp; };
+  const rev = which==='revision';   // Revision History = 폰은 홈 유지 · 우측만 변경이력 패널
+  set('homeScreen',   (which==='home'||rev) ? 'block':'none');
+  set('radarScreen',  which==='radar' ? 'flex' :'none');
+  set('searchScreen', which==='search'? 'flex' :'none');   // 검색결과: 주석 처리 대비 null-safe
+  set('specHome',   which==='home'  ? 'block':'none');
+  set('specRadar',  which==='radar' ? 'block':'none');
+  set('specSearch', which==='search'? 'block':'none');
+  set('specRevision', rev ? 'block':'none');
+  const phone = document.querySelector('.phone');  // Revision History = 폰 목업 미노출(표만 노출)
+  if(phone) phone.style.display = rev ? 'none' : '';
+  const dc = document.querySelector('.devctrl');   // 출발지 권역 데모 컨트롤 = 홈에서만 노출
+  if(dc) dc.style.display = which==='home' ? '' : 'none';
+  const bn = document.getElementById('bottomNav'); // 바텀 내비 = 홈 화면에서만 노출(레이더·검색은 뒤로가기 하위 페이지 · 리비전은 폰=홈)
+  if(bn) bn.style.display = (which==='home'||rev) ? 'flex' : 'none';
+  syncToc(which);
+}
+// 티타임 레이더 탭 전환 — 레이더(소개 페이지) / 추천(골프장 리스트)
+function selRadarTab(which){
+  const intro = document.getElementById('radarIntro');
+  const dates = document.getElementById('radarDates');
+  const body = document.querySelector('#radarScreen .scroll-body');
+  const isIntro = which === 'radar';
+  if(intro) intro.classList.toggle('on', isIntro);
+  if(dates) dates.style.display = isIntro ? 'none' : '';   // 소개 페이지에는 날짜 스트립 미노출
+  if(body) body.style.display = isIntro ? 'none' : '';
+  document.querySelectorAll('#radarScreen .tab-bar .tab-btn').forEach((b,i)=>b.classList.toggle('active', i === (isIntro?0:1)));
+}
+function openRadar(){ showScreen('radar'); selRadarTab('reco'); }      // 홈 [모두보기] = 추천 탭 활성 진입
+function openRadarIntro(){ showScreen('radar'); selRadarTab('radar'); } // 홈 티타임레이더 배너 = 레이더 탭으로 진입
+function closeRadar(){ showScreen('home'); }
+let searchBackTo = 'radar';   // 검색결과 진입 출처(뒤로가기 대상): 'radar'(레이더 전체목록) / 'home'(지역별 퀵필터)
+// 검색결과 권역 칩 선택 상태 세팅 — 'all'(레이더 진입 = 전 권역 선택) / 'single'(홈 지역별 = 해당 권역만)
+function setSearchRegions(mode, region){
+  const chips = document.querySelectorAll('#searchScreen .sr-rgns .rgn-chip');
+  if(!chips.length) return;
+  if(mode === 'all'){
+    chips.forEach(c=>c.classList.add('on'));                                  // 서울/경기·강원·충청·경상·전라·제주 전부 선택
+  }else{
+    chips.forEach(c=>c.classList.toggle('on', c.textContent.trim() === region));
+    if(![...chips].some(c=>c.classList.contains('on'))) chips[0].classList.add('on');  // 매칭 없으면(가까운 골프장 등) 서울/경기 기본
+  }
+}
+// 진입 출처 날짜 스트립의 선택 일자를 검색결과 날짜 스트립으로 물고 오기
+function syncSearchDate(fromStripId){
+  const src = document.querySelector('#'+fromStripId+' .date-item.active');
+  const items = [...document.querySelectorAll('#searchDates .date-item')];
+  if(!src || !items.length) return;
+  const srcNum = src.querySelector('.date-num').textContent.trim();
+  const match = items.find(it=>it.querySelector('.date-num').textContent.trim() === srcNum);
+  if(!match) return;   // 검색 날짜 범위 밖이면 기존 선택 유지
+  items.forEach(it=>it.classList.remove('active'));
+  match.classList.add('active');
+}
+function openSearch(from, region){   // 전체 목록 보러가기 / 지역별 티타임 → (검색결과 주석 처리 시 no-op)
+  if(!document.getElementById('searchScreen')) return;
+  searchBackTo = (from === 'home') ? 'home' : 'radar';
+  setSearchRegions(from === 'radar' ? 'all' : 'single', region);   // 레이더=전 권역 / 홈=해당 권역
+  if(from === 'radar') availOnly = true;                            // 추천 더보기 = 예약가능 ON(매진 미노출)
+  syncAvailUI();
+  renderSearchList();                                               // 권역·예약가능 상태 반영
+  syncSearchDate(from === 'radar' ? 'radarDates' : 'homeDates');    // 선택 일자 물고 오기
+  showScreen('search');
+  const sb = document.querySelector('#searchScreen .scroll-body');
+  if(sb) sb.scrollTop = 0;
+  const fab = document.querySelector('.sr-fab'); if(fab) fab.classList.remove('show');
+}
+function closeSearch(){ showScreen(searchBackTo); }   // ← 뒤로 = 진입 출처(레이더 또는 홈)로
+/* 화면 목차 active 동기화 */
+function syncToc(which){
+  document.querySelectorAll('.lnb-item').forEach(t=>t.classList.toggle('active', t.dataset.screen===which));
+}
+function goScreen(which){
+  showScreen(which);
+  window.scrollTo({top:0});
+  if(!isWideLnb()) closeSidebar();   // 좁은 화면(오버레이 모드)에서는 화면 이동 시 자동으로 닫힘
+}
+// Revision History 항목 클릭 → 해당 화면으로 전환 + 스펙 No.행/마커로 스크롤·강조
+function goChangelog(which, no){
+  goScreen(which);
+  if(no) setTimeout(()=>gotoMarker(String(no)), 80);   // 화면 전환 후 레이아웃 잡히면 마커로 이동
+}
+
+/* ===== LNB 반응형 사이드바: 넓은 화면=밀어내기 / 좁은 화면=오버레이(햄버거로 열고닫기) ===== */
+const LNB_BP = 1300; // 이 폭 이상이면 '넓은 화면'
+let sidebarOpen = true;
+function isWideLnb(){ return window.innerWidth >= LNB_BP; }
+function applySidebarMode(){
+  const lnb = document.getElementById('lnb');
+  const backdrop = document.getElementById('lnbBackdrop');
+  const burger = document.getElementById('burgerBtn');
+  const wide = isWideLnb();
+  lnb.classList.toggle('overlay', !wide);
+  if(wide){
+    backdrop.classList.remove('show');
+    lnb.classList.remove('open');
+    lnb.classList.toggle('collapsed', !sidebarOpen);
+  }else{
+    lnb.classList.remove('collapsed');
+    lnb.classList.toggle('open', sidebarOpen);
+    backdrop.classList.toggle('show', sidebarOpen);
+  }
+  burger.classList.toggle('on', sidebarOpen);
+}
+function toggleSidebar(){ sidebarOpen = !sidebarOpen; applySidebarMode(); }
+function closeSidebar(){ sidebarOpen = false; applySidebarMode(); }
+function onResizeLnb(wide){
+  sidebarOpen = wide;   // 브레이크포인트를 넘나들 때 자동 재설정: 넓어지면 열림 · 좁아지면 숨김
+  applySidebarMode();
+}
+const lnbMql = window.matchMedia(`(min-width: ${LNB_BP}px)`);
+lnbMql.addEventListener('change', e => onResizeLnb(e.matches));
+window.addEventListener('resize', () => applySidebarMode()); // 폭 변화에 따른 collapsed 폭 등 즉시 반영(모드 자체는 matchMedia가 결정)
+onResizeLnb(lnbMql.matches);
+
+/* 티타임 레이더 · 추천 탭 > 오늘의 재예약 많은 골프장 (메인과 동일한 로테이션 리스트) */
+function won(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function slotHTML(base, showTag, hasRefund, ext){
+  if(showTag === undefined) showTag = true;    // false면 시간·그린피만 (환급할인/선결제 태그 숨김)
+  if(hasRefund === undefined) hasRefund = true; // 구장 귀속 환급할인 없으면 슬롯도 환급할인 미표기(뱃지↔슬롯 정합성)
+  // 티타임(슬롯)별 환급할인/선결제 = 해당있는 경우만 노출 (독립 플래그) · 임박특가는 초록 ↓ 화살표로 표기
+  const rows = [
+    {t:'06:40', refund:1, pre:1, add:0}, {t:'07:00', pre:1, add:3000}, {t:'07:10', add:3000},
+    {t:'07:30', refund:1, add:5000}, {t:'08:00', refund:1, pre:1, add:7000}, {t:'08:20', add:9000},
+  ];
+  return rows.map(r=>{
+    const refund = r.refund && hasRefund;      // 구장에 환급할인 없으면 슬롯 환급할인 제거
+    // ext(홈페이지 참조) 상품 = 슬롯별 그린피 자리도 전부 "홈페이지 참조" · 임박특가(↓) 미표기
+    const priceHtml = ext ? '<div class="p ref">홈페이지 참조</div>' : `<div class="p${refund?' down':''}">${refund?'↓ ':''}${won(base + r.add)}</div>`;
+    const tags = showTag ? [refund?'<span class="d-r">환급할인</span>':null, r.pre?'<span class="d-p">선결제</span>':null].filter(Boolean).join(' · ') : '';
+    const tagHtml = tags ? `<div class="d">${tags}</div>` : '';
+    return `<div class="pc-slot"><div class="t">${r.t}</div>${tagHtml}${priceHtml}</div>`;
+  }).join('');
+}
+function renderRadarCards(){
+  // 선택 일자에 예약 가능 골프장 없음 → 카드 리스트 대신 빈 상태 노출
+  const emptyEl = document.getElementById('radarEmpty');
+  const listEl = document.getElementById('pcardList');
+  if(radarEmpty){ if(listEl) listEl.style.display='none'; if(emptyEl) emptyEl.style.display='flex'; return; }
+  if(listEl) listEl.style.display=''; if(emptyEl) emptyEl.style.display='none';
+  // 추천 탭 = AD(사업팀 구좌) 미노출 — 해당 골프장은 목록에서 제외
+  const list = buildHomeList(10).filter(g=>g.slot!=='self');
+  const mainIdx = 0;   // 첫 카드 = 마커 기준 (전 카드 기본 닫힘 — 스펙 10)
+  document.getElementById('pcardList').innerHTML = list.map((g,i)=>{
+    const isMain = i===mainIdx;
+    const collapsed = true;   // 디폴트 = 전 카드 닫힘 · [잔여 N팀] 폴딩 탭 시 티타임 리스트 노출
+    const base = parseInt(g.price.replace(/[^0-9]/g,''), 10);
+    // 외부예약(ext) = 일반 카드와 동일(폴딩·잔여팀·슬롯) · 그린피 자리만 "홈페이지 참조"
+    const priceHtml = g.ext ? '<span class="pc-price ref">홈페이지 참조</span>' : `<span class="pc-price">${g.price}</span>`;
+    const priceRow = `<div class="pc-price-row">
+        ${priceHtml}
+        <button class="pc-fold" onclick="toggleFold(this)">${isMain?'<span class="anno" style="top:-11px;right:-14px">10</span>':''}잔여 ${g.left}팀 <span class="arw">${collapsed?'∨':'∧'}</span></button>
+      </div>`;
+    // 구장 귀속 환급 뱃지 = 해당있는 경우만 · 문구 멤버십 분기(가입=환급할인 / 미가입=1만원환급) — 홈과 동일 로직
+    const hasRefund = (g.tags||[]).includes('환급할인');
+    // 뱃지 — 멤버십 특가(간헐 · 초록 · 환급 앞) · 구장 귀속 환급(해당있는 경우만)
+    // 멤버십 특가 = 가입 유저 + 특가 상품 보유 골프장에만 (스펙 9-1 로직)
+    const pcTags = [(member && g.deal)?'<span class="t-deal">멤버십 특가</span>':null, hasRefund?refundBadge():null].filter(Boolean);
+    const tagsHtml = pcTags.length ? `<div class="pc-tags">${pcTags.join(' · ')}</div>` : '';
+    // 티타임(슬롯) 리스트 = No.9. 마커는 스크롤영역 밖(래퍼)에 배치해 클리핑 방지
+    const slotsHtml = `<div class="pc-teetime"><div class="pc-slots">${slotHTML(base, true, hasRefund, g.ext)}</div></div>`;
+    return `<div class="pcard${collapsed?' collapsed':''}">
+      <div class="pc-top">
+        ${isMain?'<span class="anno" style="top:-11px;left:-16px">9</span>':''}
+        <span class="pc-name">${g.nm}</span>
+        <span class="pc-region">${g.region}·${g.km}km · <span class="pc-star">★</span> ${g.star}</span>
+        <button class="pc-heart${RADAR_FAV.includes(g.nm)?' on':''}" onclick="toggleHeart(this)">♥</button>
+      </div>
+      ${tagsHtml}
+      ${priceRow}
+      ${slotsHtml}
+    </div>`;
+  }).join('');
+}
+
+/* 검색결과 리스트 = AD 상단 노출 + 그 하위로 전체 골프장 재예약(인기도) 높은 순 */
+function srItem(g, isAd, expanded){
+  const soldout = g.left === 0;
+  const hasRefund = isAd || (g.tags||[]).includes('환급할인');   // AD는 환급할인 무조건 · 그 외 구장 귀속 → 뱃지·슬롯 정합
+  const thumb = isAd ? '<div class="srx-thumb"></div>' : '';
+  // 뱃지 — AD 영역: 멤버십 특가(간헐) · 환급할인(무조건) · AD (모든 티타임 없음) / 일반: 환급할인 · 모든 티타임
+  const tagParts = [];
+  if(isAd){
+    if(member && g.deal) tagParts.push('<span class="t-deal">멤버십 특가</span>');   // 가입 유저 + 특가 상품 보유 시
+    tagParts.push('<span class="t-refund">환급할인</span>');
+    tagParts.push('<span class="adt">AD</span>');
+  }else{
+    if(hasRefund) tagParts.push('<span class="t-refund">환급할인</span>');
+    if((g.tags||[]).includes('동시오픈')) tagParts.push('<span class="t-open">모든 티타임</span>');   // 검색 노출 문구
+  }
+  const tagsLine = tagParts.length ? `<div class="srx-tags">${tagParts.join(' · ')}</div>` : '';
+  const base = parseInt(g.price.replace(/[^0-9]/g,''), 10);
+  const foldable = !soldout;                            // 매진만 폴딩 없음 · 외부예약(ext)도 일반과 동일
+  // 외부예약(ext) = 그린피 자리만 "홈페이지 참조" · 폴딩·잔여팀·슬롯은 일반과 동일
+  const priceHtml = g.ext ? '<span class="srx-price ref">홈페이지 참조</span>' : `<span class="srx-price">${g.price}</span>`;
+  const bot = soldout
+    ? `<span class="srx-sold">잔여 티타임이 없어요</span><span class="srx-alarm">티타임 오픈 알림 <span class="pl">+</span></span>`
+    : `${priceHtml}<button class="srx-fold">잔여 ${g.left}팀 <span class="fa">${expanded?'∧':'∨'}</span></button>`;
+  const slots = foldable ? `<div class="srx-slots">${slotHTML(base, true, hasRefund, g.ext)}</div>` : '';
+  return `<div class="srx${(foldable && !expanded)?' collapsed':''}${soldout?' sold':''}" ${foldable?'onclick="srFold(this)"':''}>
+    <div class="srx-head">
+      ${thumb}
+      <div class="srx-body">
+        <div class="srx-top"><span class="srx-nm">${g.nm}</span><span class="srx-meta">${g.region}·${g.km}km · <span class="srx-star">★</span> ${g.star}</span></div>
+        ${tagsLine}
+        <div class="srx-bot">${bot}</div>
+      </div>
+    </div>
+    ${slots}
+  </div>`;
+}
+function srFold(item){
+  if(item.classList.contains('sold')) return;
+  const col = item.classList.toggle('collapsed');
+  const fa = item.querySelector('.fa'); if(fa) fa.textContent = col ? '∨' : '∧';
+}
+function renderSearchList(){
+  if(!document.getElementById('searchList')) return;   // 검색결과 주석 처리 대비
+  const ranked = LIST.map(g=>({...g, score:scoreOf(g)})).sort((a,b)=>b.score-a.score);
+  const pool = availOnly ? ranked.filter(g=>g.left!==0) : ranked;      // [예약 가능] = 매진(잔여0) 제외 → 해제 시 노출
+  const chips = [...document.querySelectorAll('#searchScreen .sr-rgns .rgn-chip')];
+  const selCount = chips.filter(c=>c.classList.contains('on')).length;   // 선택된 권역 수
+  const adHidden = selCount >= 2;   // 권역 2개 이상(다중) 선택 시 AD 미노출 · 단일 선택일 때만 AD 노출
+  const adNames = ['더반','로제비앙','태광','캐슬파인','인천그랜드'];    // 검색 상단 광고구좌(데모)
+  const ads = adHidden ? [] : pool.filter(g=>adNames.includes(g.nm)).slice(0,5);  // 단일 권역 = 최대 5개 / 2개 이상 = 미노출
+  const rest = pool.filter(g=>!ads.includes(g));                       // AD 하위 = 전체 리스트(재예약 순)
+  const firstOpen = rest.findIndex(g=>g.left!==0);                     // 첫 예약가능 카드 기본 펼침(데모)
+  const html = ads.map(g=>srItem(g, true, false)).join('')
+             + (ads.length ? '<div class="sr-divider"></div>' : '')
+             + rest.map((g,i)=>srItem(g, false, i===firstOpen)).join('');
+  document.getElementById('searchList').innerHTML = html;
+}
+
+buildDateStrips();            // 3개 화면 날짜 버튼 주입 (렌더/스티키 계산 전에 먼저)
+render();
+renderRadarCards();
+renderSearchList();
+syncAvailUI();                 // 검색 [예약 가능] 초기 상태(◉ ON) 반영
+
+/* 진입 시 1번 디스크립션(마커 1)이 클릭했을 때와 동일한 위치로 활성화되도록 스크롤 */
+syncHomeStickyTop();          // 날짜 스트립(주력) sticky top = 헤더 높이
+gotoMarker('1');              // No.1 클릭과 동일한 스크롤 위치 + 마커 1 하이라이트
+window.addEventListener('resize', syncHomeStickyTop);
+
+/* 검색결과 스크롤 시 하단 플로팅 [필터·정렬] 슥 노출 (필터 바가 올라가 숨은 뒤) */
+(function(){
+  const sb = document.querySelector('#searchScreen .scroll-body');
+  if(sb) sb.addEventListener('scroll', function(){
+    document.querySelector('.sr-fab').classList.toggle('show', this.scrollTop > 120);
+  });
+})();
+
+/* 폰 번호 마커 hover → 우측 상세기획 표의 해당 행 하이라이트 */
+function hlRow(n, on){
+  const specs = ['specHome','specRadar','specSearch'].map(id=>document.getElementById(id));
+  const spec = specs.find(s=>getComputedStyle(s).display !== 'none') || specs[0];
+  spec.querySelectorAll('.spectbl tbody tr').forEach(tr=>{
+    const no = tr.querySelector('.no')?.textContent.trim();
+    tr.classList.toggle('hl-row', on && no === n);
+  });
+}
+document.addEventListener('mouseover', e=>{ const a = e.target.closest('.anno'); if(a) hlRow(a.textContent.trim(), true); });
+document.addEventListener('mouseout',  e=>{ const a = e.target.closest('.anno'); if(a) hlRow(a.textContent.trim(), false); });
+
+/* 표 No. 클릭 → 폰에서 해당 마커 위치로 스크롤 이동 + 마커 반짝임 */
+function gotoMarker(n){
+  const screenId = ['homeScreen','radarScreen','searchScreen'].find(id=>getComputedStyle(document.getElementById(id)).display !== 'none') || 'homeScreen';
+  const screen = document.getElementById(screenId);
+  const scroller = screenId==='homeScreen' ? screen : screen.querySelector('.scroll-body');
+  const marker = [...screen.querySelectorAll('.anno')].find(a => a.textContent.trim() === String(n));
+  if(!marker || !scroller) return;
+  // 홈은 상단 고정(헤더+날짜) 높이만큼 더 내려서 마커가 가려지지 않게
+  let offset = 90;
+  if(screenId === 'homeScreen'){
+    const hdr = screen.querySelector('.home-header');
+    const dates = document.getElementById('homeDates');
+    offset = (hdr?hdr.offsetHeight:0) + (dates?dates.offsetHeight:0) + 16;
+  }
+  // 타이틀 위 출발지 유도 툴팁이 떠 있으면 그만큼 더 내려서 툴팁이 고정 헤더에 가리지 않게
+  const tip = marker.closest('.sec-head') && marker.closest('.sec-head').querySelector('.sec-tip');
+  if(tip && getComputedStyle(tip).display !== 'none') offset += tip.offsetHeight + 12;
+  const mRect = marker.getBoundingClientRect(), sRect = scroller.getBoundingClientRect();
+  const max = scroller.scrollHeight - scroller.clientHeight;
+  const target = Math.max(0, Math.min(max, scroller.scrollTop + (mRect.top - sRect.top) - offset));
+  scroller.scrollTop = target;
+  marker.classList.remove('pulse'); void marker.offsetWidth; marker.classList.add('pulse');
+  setTimeout(()=>marker.classList.remove('pulse'), 1200);
+}
+document.addEventListener('click', e=>{ const c = e.target.closest('.spectbl td.no'); if(c) gotoMarker(c.textContent.trim()); });
+</script>
+</body>
+</html>
